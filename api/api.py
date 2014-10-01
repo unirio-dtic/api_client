@@ -54,5 +54,8 @@ class UNIRIOAPIRequest(object):
     def performPOSTRequest( self, path, params ):
         pass
 
-    def _URLQueryParametersForReturnFields( self, fields):
+    def performDELETERequest( self ):
+        pass
+
+    def performUPDATERequest( self ):
         pass
