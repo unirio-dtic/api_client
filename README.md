@@ -26,10 +26,18 @@ uAPi = UNIRIOAPIRequest( APIKey )
 path = "ALUNOS"
 params = {"LMIN" : 0,
           "LMAX" : 1000,
-          "SEXO" : "F",
-          "FORMAT" : "JSON"}
+          "SEXO" : "F"
+          "ETNIA_ITEM" : 1}
 fields = ["ID_ALUNO", "ID_PESSOA", "SEXO"]
 
 ret = uAPi.performGETRequest( path, params, fields )
 
 ```
+
+A method call to `UNIRIOAPIRequest.performGETRequest` will return an `APIResultObject` wich is a model object and have the following attributes:
+* content = A list of dictionaries with the result of the API Query
+* lmin = The offset of the request result
+* lmax = The limit of the request result
+* count = The total ammount of results if the request wasnt limited by lmin and lmax
+
+For default value references, check the API documentation.
