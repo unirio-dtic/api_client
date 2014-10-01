@@ -8,7 +8,7 @@ UNIRIOAPIRequest takes 2 arguments:
 * A valid APIKey that will be used for future requests
 * An integer identifier for the server used to perform requests. Default=0 (Production Server)
 
-The main method signature for performing syncronous API GET requests is defined by the signature performGETRequest( path, params=None, fields=None ), where:
+The main method signature for performing syncronous API GET requests is defined by the signature `python performGETRequest( path, params=None, fields=None ) `, where:
 * path = The API endpoint to use for the request, for example "ALUNOS"
 * params = The parameters for the request. A value of None sends the automatic API parameters
 * fields = The return fields for the request. A value of None is equal do requesting ALL the fields
