@@ -8,10 +8,14 @@ class APIResultObject(object):
     content = []
 
     def __init__(self, json, APIRequest):
-        r = simplejson.loads( json )
-        self.content = r["content"]
-        self.lmin = r["subset"][0]
-        self.lmax = r["subset"][1]
+        try:
+            r = simplejson.loads( json )
+            self.content = r["content"]
+            self.lmin = r["subset"][0]
+            self.lmax = r["subset"][1]
+            self.count = r["count"]
+        except ValueError:
+            raise ValueError("JSON decoding failed. Value may be None.")
         self.request = APIRequest
 
     #===========================================================================
@@ -22,3 +26,6 @@ class APIResultObject(object):
     def nextRequestForResult(self):
         pass
 
+
+class APIPostResponse( APIResultObject ):
+    pass
