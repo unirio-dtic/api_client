@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from gluon.contrib import simplejson
 
+
 class APIResultObject(object):
     count = 0
     lmin = 0
@@ -9,7 +10,7 @@ class APIResultObject(object):
 
     def __init__(self, json, APIRequest):
         try:
-            r = simplejson.loads( json )
+            r = simplejson.loads(json)
             self.content = r["content"]
             self.lmin = r["subset"][0]
             self.lmax = r["subset"][1]
@@ -18,14 +19,15 @@ class APIResultObject(object):
             raise ValueError("JSON decoding failed. Value may be None.")
         self.request = APIRequest
 
-    #===========================================================================
-    # Um subset de um resultado (lmin->lmax) pode conter somente
-    # uma parte do total de resultados (count). Este método retornará
-    # os parâmetros a serem utilizados pelo próximo UNIRIOAPI.performRequest
-    #===========================================================================
     def nextRequestForResult(self):
+        """
+        Um subset de um resultado (lmin->lmax) pode conter somente
+        uma parte do total de resultados (count). Este método retornará
+        os parâmetros a serem utilizados pelo próximo UNIRIOAPI.performRequest
+
+        """
         pass
 
 
-class APIPostResponse( APIResultObject ):
+class APIPOSTResponse(APIResultObject):
     pass
