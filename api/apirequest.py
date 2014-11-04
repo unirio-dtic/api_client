@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import urllib
 import httplib
-from twisted.web.http_headers import Headers
 from apiresult import APIResultObject, APIPOSTResponse
 
 class UNIRIOAPIRequest(object):
