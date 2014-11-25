@@ -2,6 +2,7 @@
 import urllib
 import httplib
 from apiresult import APIResultObject, APIPOSTResponse
+import requests
 
 class UNIRIOAPIRequest(object):
     """
@@ -9,8 +10,8 @@ class UNIRIOAPIRequest(object):
     """
     method = "GET"
     lastQuery = ""
-    _versions = {0: "Production", 1: "Development"}
-    baseAPIURL = {0: "https://sistemas.unirio.br/api", 1: "https://teste.sistemas.unirio.br/api"}
+    _versions = {0: "Production", 1: "Development", 2: "Local"}
+    baseAPIURL = {0: "https://sistemas.unirio.br/api", 1: "https://teste.sistemas.unirio.br/api", 2: "http://localhost:8000/api"}
     timeout = 5  # 5 seconds
 
     def __init__(self, api_key, server=0):
@@ -81,6 +82,12 @@ class UNIRIOAPIRequest(object):
 
         return data
 
+    def POSTPayload(self, params=None):
+        params.update({
+            "API_KEY": self.api_key
+        })
+        return params
+
     def performGETRequest(self, path, params=None, fields=None):
         """
         Método para realizar uma requisição GET. O método utiliza a API Key
@@ -95,7 +102,7 @@ class UNIRIOAPIRequest(object):
         """
 
         url = self._URLWithPath(path) + "?" + self.URLQueryData(params, fields)
-
+        print url
         try:
             json = urllib.urlopen(url).read()
             resultObject = APIResultObject(json, self)
@@ -105,15 +112,16 @@ class UNIRIOAPIRequest(object):
             raise e
 
     def performPOSTRequest(self, path, params):
-        http = httplib.HTTPConnection(self.baseAPIURL[self.server], httplib.HTTPS_PORT, timeout=self.timeout)
+        """
+
+        :rtype : APIPOSTResponse
+        """
         url = self._URLWithPath(path)
-        headers = {"Content-Type": "application/json"}
-        data = self.URLQueryData(params)
+        # cert = os.path.abspath("certs/sistemas.unirio.br.crt")
+        payload = self.POSTPayload(params)
+        response = requests.post(url, payload, verify=False)
 
-        http.request("POST", url, data, headers)
-        response = http.getresponse()
-
-        return APIPOSTResponse(response.read(), self)
+        return APIPOSTResponse(response, self)
 
 
     def performDELETERequest(self, path, params):

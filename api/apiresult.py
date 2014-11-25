@@ -29,5 +29,23 @@ class APIResultObject(object):
         pass
 
 
-class APIPOSTResponse(APIResultObject):
-    pass
+class APIPOSTResponse(object):
+    #TODO Inserir definição da classe
+    def __init__(self, response, request):
+        """
+
+        :type response: Response
+        :type response: UNIRIOAPIRequest
+        :param response:
+        :param request:
+        :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
+        """
+        self.response = response
+        if not response.status_code == 201:
+            raise Exception("Erro %d - %s" % self.response.status_code, self.response.content)
+
+        self.request = request
+        self.insertId = self.response.headers['id']
+
+    def newContentURI(self):
+        return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
