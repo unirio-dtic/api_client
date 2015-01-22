@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 import urllib
-import httplib
-from apiresult import APIResultObject, APIPOSTResponse
+from datetime import datetime
+
 import requests
+
+from gluon import current
+from apiresult import APIResultObject, APIPOSTResponse, APIPUTResponse
+
+
+__all__ = ["UNIRIOAPIRequest"]
 
 class UNIRIOAPIRequest(object):
     """
     UNIRIOAPIRequest is the main class for
     """
-    method = "GET"
     lastQuery = ""
     _versions = {0: "Production", 1: "Development", 2: "Local"}
     baseAPIURL = {0: "https://sistemas.unirio.br/api", 1: "https://teste.sistemas.unirio.br/api", 2: "http://localhost:8000/api"}
     timeout = 5  # 5 seconds
 
-    def __init__(self, api_key, server=0):
+    def __init__(self, api_key, server=0, debugMode=False):
         """
 
         :param api_key: The 'API Key' that will the used to perform the requests
@@ -22,6 +27,8 @@ class UNIRIOAPIRequest(object):
         """
         self.api_key = api_key
         self.server = server
+        self.requests = []
+        self.debugMode = debugMode
 
     def _URLQueryParametersWithDictionary(self, params=None):
         """
@@ -66,6 +73,15 @@ class UNIRIOAPIRequest(object):
         requestURL = APIURL + "/" + path
         return requestURL
 
+    def __addRequest(self, method, path, params):
+        if self.debugMode:
+            self.requests.append({
+                "method": method,
+                "path": path,
+                "params": params,
+                "timestamp": datetime.now()
+            })
+
     def URLQueryData(self, params=None, fields=None):
         """
         The method provides the additional data to send to the API server in order to
@@ -83,33 +99,62 @@ class UNIRIOAPIRequest(object):
         return data
 
     def POSTPayload(self, params=None):
-        params.update({
+        """
+        O payload de um POST/PUT obrigatoriamente devem ser do tipo dict.
+
+        :type params: dict
+        :param params: Dicionário com os dados a serem inseridos
+        :rtype : dict
+        :return: Dicionário processado a ser enviado para a Request
+        """
+        payload = dict(params)
+        payload.update({
             "API_KEY": self.api_key
         })
-        return params
+        return payload
 
-    def performGETRequest(self, path, params=None, fields=None):
+    def performGETRequest(self, path, params=None, fields=None, cached=0):
         """
-        Método para realizar uma requisição GET. O método utiliza a API Key
-        fornecida ao instanciar 'UNIRIOAPIRequest' e uma chave inválida resulta
-        em um erro HTTP
+        Método para realizar uma requisição GET. O método utiliza a API Key fornecida ao instanciar 'UNIRIOAPIRequest'
+        e uma chave inválida resulta em um erro HTTP
 
+        :type path: str
         :param path: string with an API ENDPOINT
+        :type params: dict
         :param params: dictionary with URL parameters
+        :type fields: list
         :param fields: list with de desired return fields. Empty list or None will return all Fields
+        :type cached: int
+        :param cached int for cached expiration time. 0 means no cached is applied
         :rtype : APIResultObject
         :raises Exception may raise an exception if not able to instantiate APIResultObject
         """
+        def _get():
+            url = self._URLWithPath(path) + "?" + self.URLQueryData(params, fields)
+            print url
+            try:
+                json = urllib.urlopen(url).read()
+                resultObject = APIResultObject(json, self)
+                self.lastQuery = url
+                return resultObject
+            except ValueError as e:
+                if cached:
+                    return None
+                else:
+                    raise e
 
-        url = self._URLWithPath(path) + "?" + self.URLQueryData(params, fields)
-        print url
-        try:
-            json = urllib.urlopen(url).read()
-            resultObject = APIResultObject(json, self)
-            self.lastQuery = url
-            return resultObject
-        except Exception as e:
-            raise e
+        if cached:
+            uniqueHash = path + str(hash(frozenset(params.items())))
+            projeto = current.cache.ram(
+                uniqueHash,
+                lambda: _get(),
+                time_expire=cached
+            )
+            print uniqueHash
+            return projeto
+        else:
+            return _get()
+
 
     def performPOSTRequest(self, path, params):
         """
@@ -117,15 +162,21 @@ class UNIRIOAPIRequest(object):
         :rtype : APIPOSTResponse
         """
         url = self._URLWithPath(path)
-        # cert = os.path.abspath("certs/sistemas.unirio.br.crt")
         payload = self.POSTPayload(params)
-        response = requests.post(url, payload, verify=False)
 
+        response = requests.post(url, payload, verify=False)
+        self.__addRequest("POST", path, payload)
         return APIPOSTResponse(response, self)
 
+    def performDELETERequest(self, path, id):
+        url = self._URLWithPath(path)
+        response = requests.delete(url, verify=False)
 
-    def performDELETERequest(self, path, params):
-        pass
+        return APIPUTResponse(response, self)
 
-    def performUPDATERequest(self):
-        pass
+    def performPUTRequest(self, path, params):
+        url = self._URLWithPath(path)
+        payload = self.POSTPayload(params)
+        response = requests.put(url, payload, verify=False)
+
+        return APIPUTResponse(response, self)
