@@ -1,31 +1,49 @@
 # -*- coding: utf-8 -*-
-from gluon.contrib import simplejson
 
 __all__ = [
     "APIException",
     "APIResultObject",
     "APIPOSTResponse",
-    "APIPUTResponse"
+    "APIPUTResponse",
+    "APIDELETEResponse"
 ]
 
 
 class APIException(Exception):
     pass
 
+class POSTException(APIException):
+    pass
+
+class PUTException(APIException):
+    pass
+
+class DELETEException(APIException):
+    pass
+
 
 class APIResultObject(object):
-    count = 0
     lmin = 0
     lmax = 0
     content = []
 
-    def __init__(self, json, APIRequest):
+    def __init__(self, r, APIRequest):
+        """
+        :type r: Response
+        :type self.content: list
+        :type self.lmin: int
+        :type self.lmax: int
+        :type self.count: int
+        :param r:
+        :param APIRequest:
+        :raise ValueError:
+        """
         try:
-            r = simplejson.loads(json)
-            self.content = r["content"]
-            self.lmin = r["subset"][0]
-            self.lmax = r["subset"][1]
-            self.count = r["count"]
+            json = r.json()
+            self.content = json["content"]
+            self.fields = tuple(k for k in self.content[0].keys())
+            self.lmin = json["subset"][0]
+            self.lmax = json["subset"][1]
         except ValueError:
             raise ValueError("JSON decoding failed. Value may be None.")
         self.request = APIRequest
@@ -63,7 +81,7 @@ class APIPOSTResponse(object):
         """
         self.response = response
         if not response.status_code == 201:
-            raise Exception("Erro %d - %s" % (self.response.status_code, self.response.content))
+            raise POSTException("Erro %d - %s" % (self.response.status_code, self.response.content))
 
         self.request = request
         self.insertId = self.response.headers['id']
@@ -78,14 +96,23 @@ class APIPUTResponse(object):
         """
 
         :type response: Response
-        :type response: UNIRIOAPIRequest
         :param response:
         :param request:
         :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
         """
         self.response = response
         if not response.status_code == 200:
-            raise APIException("Erro %d - %s" % (self.response.status_code, self.response.content))
+            raise PUTException("Erro %d - %s" % (self.response.status_code, self.response.content))
 
         self.request = request
         self.affectedRows = self.response.headers['Affected']
+
+
+class APIDELETEResponse(APIPUTResponse):
+    def __init__(self, response, request):
+        try:
+            super(APIDELETEResponse, self).__init__(response, request)
+        except PUTException:
+            raise DELETEException
+
+
