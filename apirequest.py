@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-import aliasing
 from gluon import current
 from datetime import datetime
+from deprecator import deprecate
 import requests
+
 from .apiresult import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse, POSTException, PUTException
-from aliasing import *
 
 
 __all__ = ["UNIRIOAPIRequest"]
 
-@aliased
 class UNIRIOAPIRequest(object):
     """
     UNIRIOAPIRequest is the main class for
@@ -130,8 +129,7 @@ class UNIRIOAPIRequest(object):
         else:
             return path
 
-    @alias('get')
-    def performGETRequest(self, path, params=None, fields=None, cached=0):
+    def get(self, path, params=None, fields=None, cached=0):
         """
         Método para realizar uma requisição GET. O método utiliza a API Key fornecida ao instanciar 'UNIRIOAPIRequest'
         e uma chave inválida resulta em um erro HTTP
@@ -175,8 +173,11 @@ class UNIRIOAPIRequest(object):
         else:
             return _get()
 
-    @alias('post')
-    def performPOSTRequest(self, path, params):
+    @deprecate(get)
+    def performGETRequest(self, path, params=None, fields=None, cached=0):
+        self.get(path, params, fields, cached)
+
+    def post(self, path, params):
         """
 
         :rtype : APIPOSTResponse
@@ -194,8 +195,11 @@ class UNIRIOAPIRequest(object):
         except Exception:
             raise POSTException
 
-    @alias('delete')
-    def performDELETERequest(self, path, params):
+    @deprecate(post)
+    def performPOSTRequest(self, path, params):
+        self.post(path, params)
+
+    def delete(self, path, params):
         """
         :type path: str
         :param path: string with an API ENDPOINT
@@ -214,8 +218,11 @@ class UNIRIOAPIRequest(object):
 
         return r
 
-    @alias('put')
-    def performPUTRequest(self, path, params):
+    @deprecate(delete)
+    def performDELETERequest(self, path, params):
+        self.delete(path, params)
+
+    def put(self, path, params):
         try:
             url = self._URLWithPath(path)
             payload = self.payload(params)
@@ -223,3 +230,7 @@ class UNIRIOAPIRequest(object):
             return APIPUTResponse(response, self)
         except Exception:
             raise PUTException
+
+    @deprecate(put)
+    def performPUTRequest(self, path, params):
+        self.put(path, params)
