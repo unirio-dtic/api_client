@@ -14,12 +14,14 @@ class UNIRIOAPIRequest(object):
     UNIRIOAPIRequest is the main class for
     """
     lastQuery = ""
-    _versions = {0: "Production", 1: "Development", 2: "Local", 3: "Production Development",4:"Diogo",5:"Raul Ubuntu", 6: "Leo", 7:"Nail TESTE"}
-    baseAPIURL = {0: "https://sistemas.unirio.br/api", 1: "https://teste.sistemas.unirio.br/api",
-                  2: "http://127.0.0.1:8000/api", 3: "https://sistemas.unirio.br/api_teste",4:"http://10.129.21.147:8000/api", 5: "http://10.129.20.254:8666/web2py_api", 6: "http://10.129.21.210:8000/api",7: "http://200.156.24.170/api_teste"}
+    _versions = {0: "Production", 1: "Development", 2: "Local", 3: "Production Development"}
+    baseAPIURL = {0: "https://sistemas.unirio.br/api",
+                  1: "https://teste.sistemas.unirio.br/api",
+                  2: "https://sistemas.unirio.br/api_teste",
+                  3: "http://localhost:8000/api"}
     timeout = 5  # 5 seconds
 
-    def __init__(self, api_key, server=5, debug=False, cache=current.cache.ram):
+    def __init__(self, api_key, server=0, debug=False, cache=current.cache.ram):
         """
         :type cache: gluon.cache.CacheInRam
         :param api_key: The 'API Key' that will the used to perform the requests
@@ -175,7 +177,7 @@ class UNIRIOAPIRequest(object):
 
     @deprecate(get)
     def performGETRequest(self, path, params=None, fields=None, cached=0):
-        self.get(path, params, fields, cached)
+        return self.get(path, params, fields, cached)
 
     def post(self, path, params):
         """
@@ -197,7 +199,7 @@ class UNIRIOAPIRequest(object):
 
     @deprecate(post)
     def performPOSTRequest(self, path, params):
-        self.post(path, params)
+        return self.post(path, params)
 
     def delete(self, path, params):
         """
@@ -220,9 +222,16 @@ class UNIRIOAPIRequest(object):
 
     @deprecate(delete)
     def performDELETERequest(self, path, params):
-        self.delete(path, params)
+        return self.delete(path, params)
 
     def put(self, path, params):
+        """
+        :type path: str
+        :param path: string with an API ENDPOINT
+        :type params: dict
+        :param params: dictionary with URL parameters
+        :rtype APIPUTResponse
+        """
         try:
             url = self._URLWithPath(path)
             payload = self.payload(params)
@@ -233,4 +242,4 @@ class UNIRIOAPIRequest(object):
 
     @deprecate(put)
     def performPUTRequest(self, path, params):
-        self.put(path, params)
+        return self.put(path, params)
