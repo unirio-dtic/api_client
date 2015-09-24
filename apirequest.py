@@ -3,29 +3,35 @@ from gluon import current
 from datetime import datetime
 from deprecator import deprecate
 import requests
+from enum import Enum
 
 from .apiresult import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse, POSTException, PUTException
 
 
 __all__ = ["UNIRIOAPIRequest"]
 
+
+class APIServer(Enum):
+    PRODUCTION = "https://sistemas.unirio.br/api"
+    DEVELOPMENT = "https://teste.sistemas.unirio.br/api"
+    LOCAL = "http://localhost:8000/api"
+    PRODUCTION_DEVELOPMENT = "https://sistemas.unirio.br/api_teste"
+
+
 class UNIRIOAPIRequest(object):
     """
     UNIRIOAPIRequest is the main class for
     """
     lastQuery = ""
-    _versions = {0: "Production", 1: "Development", 2: "Local", 3: "Production Development"}
-    baseAPIURL = {0: "https://sistemas.unirio.br/api",
-                  1: "https://teste.sistemas.unirio.br/api",
-                  2: "https://sistemas.unirio.br/api_teste",
-                  3: "http://localhost:8000/api"}
     timeout = 5  # 5 seconds
 
-    def __init__(self, api_key, server=0, debug=False, cache=current.cache.ram):
+    def __init__(self, api_key, server=APIServer.LOCAL, debug=False, cache=current.cache.ram):
         """
+
+        :type server: str
         :type cache: gluon.cache.CacheInRam
         :param api_key: The 'API Key' that will the used to perform the requests
-        :param server: The server that will used. Production or Development
+        :param server: The server that will used.
         """
         self.api_key = api_key
         self.server = server
@@ -74,8 +80,7 @@ class UNIRIOAPIRequest(object):
         :param path: The API endpoint to use for the request, for example "/ALUNOS"
         :return: Base URL with the provided endpoint
         """
-        APIURL = self.baseAPIURL[self.server]
-        requestURL = APIURL + "/" + path
+        requestURL = self.server + "/" + path
         return requestURL
 
     def __addRequest(self, method, path, params):
