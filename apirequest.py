@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gluon import current
 from datetime import datetime
-from deprecator import deprecate
+from deprecate import deprecated
 import requests
 from enum import Enum
 
@@ -180,8 +180,9 @@ class UNIRIOAPIRequest(object):
         else:
             return _get()
 
-    @deprecate(get)
+    @deprecated
     def performGETRequest(self, path, params=None, fields=None, cached=0):
+        """ Prefira usar get()  """
         return self.get(path, params, fields, cached)
 
     def post(self, path, params):
@@ -202,8 +203,9 @@ class UNIRIOAPIRequest(object):
         except Exception:
             raise POSTException
 
-    @deprecate(post)
+    @deprecated
     def performPOSTRequest(self, path, params):
+        """ Prefira usar post()  """
         return self.post(path, params)
 
     def delete(self, path, params):
@@ -225,8 +227,9 @@ class UNIRIOAPIRequest(object):
 
         return r
 
-    @deprecate(delete)
+    @deprecated
     def performDELETERequest(self, path, params):
+        """ Prefira usar delete()  """
         return self.delete(path, params)
 
     def put(self, path, params):
@@ -245,6 +248,7 @@ class UNIRIOAPIRequest(object):
         except Exception:
             raise PUTException
 
-    @deprecate(put)
+    @deprecated
     def performPUTRequest(self, path, params):
+        """ Prefira usar put()  """
         return self.put(path, params)
