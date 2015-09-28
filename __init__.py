@@ -1,5 +1,5 @@
-from .apirequest import UNIRIOAPIRequest, APIServer
-from .apiresult import APIResultObject
+from .request import UNIRIOAPIRequest, APIServer
+from .result import APIResultObject
 
 
 __all__ = ["apirequest", "apiresult"]

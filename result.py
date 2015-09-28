@@ -74,7 +74,7 @@ class APIPOSTResponse(object):
         """
 
         :type response: Response
-        :type request: unirio.api.apirequest.UNIRIOAPIRequest
+        :type request: unirio.api.request.UNIRIOAPIRequest
         :param response:
         :param request:
         :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado

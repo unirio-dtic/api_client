@@ -5,7 +5,7 @@ from deprecate import deprecated
 import requests
 from enum import Enum
 
-from .apiresult import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse, POSTException, PUTException
+from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse, POSTException, PUTException
 
 
 __all__ = ["UNIRIOAPIRequest"]
@@ -214,7 +214,7 @@ class UNIRIOAPIRequest(object):
         :param path: string with an API ENDPOINT
 
         :param id:
-        :rtype : unirio.api.apiresult.APIDELETEResponse
+        :rtype : unirio.api.result.APIDELETEResponse
         """
         url = self._URLWithPath(path)
         payload = self.URLQueryData(params)
