@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+
 from gluon import current
 from datetime import datetime
-from deprecate import deprecated
 import requests
 from enum import Enum
 
@@ -39,7 +39,7 @@ class UNIRIOAPIRequest(object):
         self.debug = debug
         self.cache = cache
 
-    def _URLQueryParametersWithDictionary(self, params=None):
+    def _url_query_parameters_with_dictionary(self, params=None):
         """
         The method receiver a dictionary of URL parameters, validates and returns
         as an URL encoded string
@@ -48,7 +48,8 @@ class UNIRIOAPIRequest(object):
                         send only the API_KEY and FORMAT parameters
         :return: URL enconded string with the valid parameters
         """
-        if not params: params = {}
+        if not params:
+            params = {}
 
         params.update({"API_KEY": self.api_key, "FORMAT": "JSON"})
 
@@ -60,7 +61,7 @@ class UNIRIOAPIRequest(object):
 
         return params
 
-    def _URLQueryReturnFieldsWithList(self, fields=[]):
+    def _url_query_return_fields_with_list(self, fields=None):
         """
         The method receives a list of fields to be returned as a string of
         concatenated FIELDS parameters
@@ -69,10 +70,12 @@ class UNIRIOAPIRequest(object):
         :param fields: A list of strings with valid field names for selected path
         :type fields: list 
         """
-        if fields:
-            return {'FIELDS': ','.join(fields)}
+        if not fields:
+            fields = []
 
-    def _URLWithPath(self, path):
+        return {'FIELDS': ','.join(fields)}
+
+    def _url_with_path(self, path):
         """
         The method construct the base URL to be used for requests.
 
@@ -80,10 +83,10 @@ class UNIRIOAPIRequest(object):
         :param path: The API endpoint to use for the request, for example "/ALUNOS"
         :return: Base URL with the provided endpoint
         """
-        requestURL = self.server + "/" + path
-        return requestURL
+        request_url = self.server + "/" + path
+        return request_url
 
-    def __addRequest(self, method, path, params):
+    def __add_request(self, method, path, params):
         self.requests.append({
             "method": method,
             "path": path,
@@ -91,7 +94,7 @@ class UNIRIOAPIRequest(object):
             "timestamp": datetime.now()
         })
 
-    def URLQueryData(self, params=None, fields=None):
+    def url_query_data(self, params=None, fields=None):
         """
         The method provides the additional data to send to the API server in order to
         perform a request.
@@ -101,11 +104,11 @@ class UNIRIOAPIRequest(object):
         :param fields: list with de desired return fields. Empty list or None will return all Fields
         :return:
         """
-        parameters = self._URLQueryParametersWithDictionary(params)
-        returnFields = self._URLQueryReturnFieldsWithList(fields)
+        parameters = self._url_query_parameters_with_dictionary(params)
+        return_fields = self._url_query_return_fields_with_list(fields)
         # data = parameters + returnFields if returnFields else parameters
-        if returnFields:
-            parameters.update(returnFields)
+        if return_fields:
+            parameters.update(return_fields)
         return parameters
 
     def payload(self, params=None):
@@ -123,7 +126,7 @@ class UNIRIOAPIRequest(object):
         })
         return payload
 
-    def __cacheHash(self, path, params):
+    def __cache_hash(self, path, params):
         """
         Método utilizado para gerar um hash único para ser utilizado como chave de um cache
 
@@ -154,14 +157,14 @@ class UNIRIOAPIRequest(object):
         """
 
         def _get():
-            url = self._URLWithPath(path)
-            payload = self.URLQueryData(params, fields)
+            url = self._url_with_path(path)
+            payload = self.url_query_data(params, fields)
             try:
                 r = requests.get(url, params=payload, verify=False)
-                print r.url     #debuging
-                resultObject = APIResultObject(r, self)
+                print r.url     # debuging
+                result_object = APIResultObject(r, self)
                 self.lastQuery = url
-                return resultObject
+                return result_object
             except ValueError as e:
                 if cached:
                     return None
@@ -169,21 +172,16 @@ class UNIRIOAPIRequest(object):
                     raise e
 
         if cached:
-            uniqueHash = self.__cacheHash(path, params)
-            cachedContent = self.cache(
-                uniqueHash,
+            unique_hash = self.__cache_hash(path, params)
+            cached_content = self.cache(
+                unique_hash,
                 lambda: _get(),
                 time_expire=cached
             )
-            print uniqueHash
-            return cachedContent
+            print unique_hash
+            return cached_content
         else:
             return _get()
-
-    @deprecated
-    def performGETRequest(self, path, params=None, fields=None, cached=0):
-        """ Prefira usar get()  """
-        return self.get(path, params, fields, cached)
 
     def post(self, path, params):
         """
@@ -192,45 +190,34 @@ class UNIRIOAPIRequest(object):
         """
         try:
 
-            url = self._URLWithPath(path)
+            url = self._url_with_path(path)
             payload = self.payload(params)
 
             response = requests.post(url, payload, verify=False)
-            #print response.url
+            # print response.url
             if self.debug:
-                self.__addRequest("POST", path, payload)
+                self.__add_request("POST", path, payload)
             return APIPOSTResponse(response, self)
         except Exception:
             raise POSTException
-
-    @deprecated
-    def performPOSTRequest(self, path, params):
-        """ Prefira usar post()  """
-        return self.post(path, params)
 
     def delete(self, path, params):
         """
         :type path: str
         :param path: string with an API ENDPOINT
 
-        :param id:
         :rtype : unirio.api.result.APIDELETEResponse
         """
-        url = self._URLWithPath(path)
-        payload = self.URLQueryData(params)
-        #contentURI = "%s?%s" % (url, payload)
+        url = self._url_with_path(path)
+        payload = self.url_query_data(params)
+        # contentURI = "%s?%s" % (url, payload)
 
-        #gamb_payload = "&".join(["%s=%s" % (campo, payload[campo]) for campo in payload])
-        #contentURI = "%s?%s" % (url,gamb_payload)
-        req = requests.delete(url,data=payload, verify=False)
+        # gamb_payload = "&".join(["%s=%s" % (campo, payload[campo]) for campo in payload])
+        # contentURI = "%s?%s" % (url,gamb_payload)
+        req = requests.delete(url, data=payload, verify=False)
         r = APIDELETEResponse(req, self)
 
         return r
-
-    @deprecated
-    def performDELETERequest(self, path, params):
-        """ Prefira usar delete()  """
-        return self.delete(path, params)
 
     def put(self, path, params):
         """
@@ -241,14 +228,9 @@ class UNIRIOAPIRequest(object):
         :rtype APIPUTResponse
         """
         try:
-            url = self._URLWithPath(path)
+            url = self._url_with_path(path)
             payload = self.payload(params)
             response = requests.put(url, payload, verify=False)
             return APIPUTResponse(response, self)
         except Exception:
             raise PUTException
-
-    @deprecated
-    def performPUTRequest(self, path, params):
-        """ Prefira usar put()  """
-        return self.put(path, params)

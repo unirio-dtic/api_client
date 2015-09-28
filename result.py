@@ -12,11 +12,14 @@ __all__ = [
 class APIException(Exception):
     pass
 
+
 class POSTException(APIException):
     pass
 
+
 class PUTException(APIException):
     pass
+
 
 class DELETEException(APIException):
     pass
@@ -27,7 +30,7 @@ class APIResultObject(object):
     lmax = 0
     content = []
 
-    def __init__(self, r, APIRequest):
+    def __init__(self, r, api_request):
         """
         :type r: Response
         :type self.content: list
@@ -35,7 +38,7 @@ class APIResultObject(object):
         :type self.lmax: int
         :type self.count: int
         :param r:
-        :param APIRequest:
+        :param api_request:
         :raise ValueError:
         """
         try:
@@ -46,9 +49,9 @@ class APIResultObject(object):
             self.lmax = json["subset"][1]
         except ValueError:
             raise ValueError("JSON decoding failed. Value may be None.")
-        self.request = APIRequest
+        self.request = api_request
 
-    def nextRequestForResult(self):
+    def next_request_for_result(self):
         """
         Um subset de um resultado (lmin->lmax) pode conter somente
         uma parte do total de resultados (count). Este método retornará
@@ -69,7 +72,6 @@ class APIResultObject(object):
 
 
 class APIPOSTResponse(object):
-    #TODO Inserir definição da classe
     def __init__(self, response, request):
         """
 
@@ -87,7 +89,7 @@ class APIPOSTResponse(object):
         self.insertId = self.response.headers['id']
         print "Inseriou em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
 
-    def newContentURI(self):
+    def new_content_uri(self):
         return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
 
 
@@ -114,5 +116,3 @@ class APIDELETEResponse(APIPUTResponse):
             super(APIDELETEResponse, self).__init__(response, request)
         except PUTException:
             raise DELETEException
-
-
