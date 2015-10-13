@@ -2,19 +2,30 @@ __author__ = 'diogomartins'
 
 
 class APIException(Exception):
-    def __init__(self, response):
+    def __init__(self, response, msg=None, status_code=None):
+        """
+        :type response: requests.models.Response
+        """
         self.response = response
+        self.msg = msg
+        self.status_code = status_code
 
 
 class ForbiddenEndpointException(APIException):
-    def __init__(self, response, msg=None, status_code=None):
-        super(ForbiddenEndpointException, self).__init__(response)
-        self.msg = msg
-        self.status_code = status_code
+    pass
 
 
 class InvalidEndpointException(APIException):
-    def __init__(self, response, msg=None, status_code=None):
-        super(InvalidEndpointException, self).__init__(response)
-        self.msg = msg
-        self.status_code = status_code
+    pass
+
+
+class ContentNotCreatedException(APIException):
+    pass
+
+
+class InvalidAPIKeyException(APIException):
+    pass
+
+
+class NoContentException(APIException, ValueError):
+    pass

@@ -186,18 +186,14 @@ class UNIRIOAPIRequest(object):
 
         :rtype : APIPOSTResponse
         """
-        try:
+        url = self._url_with_path(path)
+        payload = self.payload(params)
 
-            url = self._url_with_path(path)
-            payload = self.payload(params)
-
-            response = requests.post(url, payload, verify=False)
-            # print response.url
-            if self.debug:
-                self.__add_request("POST", path, payload)
-            return APIPOSTResponse(response, self)
-        except Exception:
-            raise POSTException
+        response = requests.post(url, payload, verify=False)
+        # print response.url
+        if self.debug:
+            self.__add_request("POST", path, payload)
+        return APIPOSTResponse(response, self)
 
     def delete(self, path, params):
         """

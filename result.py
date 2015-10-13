@@ -15,36 +15,47 @@ __all__ = [
 ]
 
 
-class APIResultObject(object):
+class APIResponse(object):
+    def __init__(self, response):
+        """
+        :type response: requests.models.Response
+        """
+        self.response = response
+        if http.FORBIDDEN == response.status_code:
+            raise ForbiddenEndpointException(self.response, self.response.text, self.response.status_code)
+        elif http.UNAUTHORIZED == response.status_code:
+            raise InvalidAPIKeyException(self.response, self.response.text, self.response.status_code)
+
+
+class APIResultObject(APIResponse):
     lmin = 0
     lmax = 0
     content = []
 
-    def __init__(self, r, api_request):
+    def __init__(self, response, api_request):
         """
-        :type r: Response
-        :type self.content: list
-        :type self.lmin: int
-        :type self.lmax: int
-        :type self.count: int
-        :param r:
-        :param api_request:
-        :raise ValueError:
-        """
-        if http.OK == r.status_code:
+            :type r: Response
+            :type self.content: list
+            :type self.lmin: int
+            :type self.lmax: int
+            :type self.count: int
+            :param r:
+            :param api_request:
+            :raise ValueError:
+            """
+        super(APIResultObject, self).__init__(response)
+        if http.OK == self.response.status_code:
             try:
-                json = r.json()
+                json = self.response.json()
                 self.content = json["content"]
                 self.fields = tuple(k for k in self.content[0].keys())
                 self.lmin = json["subset"][0]
                 self.lmax = json["subset"][1]
             except ValueError:
-                raise ValueError("JSON decoding failed. Value may be None.")
+                raise NoContentException(self.response)
 
-        elif http.FORBIDDEN == r.status_code:
-            raise ForbiddenEndpointException(r, r.text, r.status_code)
-        elif http.NOT_FOUND == r.status_code:
-            raise InvalidEndpointException(r, r.text, r.status_code)
+        elif http.NOT_FOUND == self.response.status_code:
+            raise InvalidEndpointException(self.response, self.response.text, self.response.status_code)
         self.request = api_request
 
     def next_request_for_result(self):
@@ -67,23 +78,22 @@ class APIResultObject(object):
         return self.content[0]
 
 
-class APIPOSTResponse(object):
+class APIPOSTResponse(APIResponse):
     def __init__(self, response, request):
         """
-
-        :type response: Response
+        :type response: requests.models.Response
         :type request: unirio.api.request.UNIRIOAPIRequest
         :param response:
         :param request:
         :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
         """
-        self.response = response
-        if not response.status_code == 201:
-            raise POSTException("Erro %d - %s" % (self.response.status_code, self.response.content))
-
-        self.request = request
-        self.insertId = self.response.headers['id']
-        print "Inseriou em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
+        super(APIPOSTResponse, self).__init__(response)
+        if http.CREATED == response.status_code:
+            self.request = request
+            self.insertId = self.response.headers['id']
+            print "Inseriu em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
+        if http.NOT_FOUND == response.status_code:  # TODO api retornando status code errado para esse caso
+            raise ContentNotCreatedException(response, response.text, response.status_code)
 
     def new_content_uri(self):
         return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
