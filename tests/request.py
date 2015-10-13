@@ -1,9 +1,10 @@
+import random
 import unittest
-from unirio.api import UNIRIOAPIRequest, APIServer, APIResultObject
+from unirio.api import UNIRIOAPIRequest, APIServer
 from unirio.api.exceptions import *
-from datetime import datetime
-from unirio.api.result import APIPOSTResponse
+from unirio.api.result import *
 import warnings
+import string
 
 
 class TestAPIRequest(unittest.TestCase):
@@ -17,14 +18,16 @@ class TestAPIRequest(unittest.TestCase):
     }
 
     def setUp(self):
-        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, APIServer.PRODUCTION_DEVELOPMENT, cache=None)
+        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, APIServer.LOCAL, cache=None)
+
+    def _random_string(self, length):
+        return ''.join(random.choice(string.lowercase) for i in xrange(length))
 
 
 class TestAPIKey(TestAPIRequest):
     def test_valid_key(self):
         try:
-            with self.assertRaises(NoContentException):
-                self.api.get(self.valid_endpoint)
+            result = self.api.get(self.valid_endpoint)
         except InvalidAPIKeyException:
             self.fail("test_valid_key() failed. A valid key is being invalidated.")
 
@@ -57,25 +60,85 @@ class TestGETRequest(TestAPIRequest):
         for field in fields:
             result = self.api.get(self.valid_endpoint, {'ORDERBY': field})
             for i, j in zip(result.content, result.content[1:]):
-                self.assertTrue(i[field] < j[field])
+                self.assertTrue(i[field] <= j[field])
 
 
 class TestPOSTRequest(TestAPIRequest):
     not_null_keys = ('PROJNO', 'PROJNAME', 'DEPTNO', 'RESPEMP', 'MAJPROJ',)
-    primary_key = 'ID_UNIT_TEST'
+
+
+    @property
+    def valid_entry(self):
+        return {k: self._random_string(3) for k in self.not_null_keys}
 
     def test_valid_endpoint_with_permission(self):
-        valid_entry = {k: 'abc' for k in self.not_null_keys}
-        new_resource = self.api.post(self.valid_endpoint, valid_entry)
+        new_resource = self.api.post(self.valid_endpoint, self.valid_entry)
         self.assertIsInstance(new_resource, APIPOSTResponse)
+
+    def test_valid_endpoint_with_permission_and_empty_arguments(self):
+        with self.assertRaises(InvalidParametersException):
+            self.api.post(self.valid_endpoint, {})
+
+    def test_valid_endpoint_with_permision_and_invalid_arguments(self):
+        with self.assertRaises(InvalidParametersException):
+            entry = {k: random.randint(1000, 10000) for k in self.not_null_keys}
+            self.api.post(self.valid_endpoint, entry)
 
     def test_valid_endpoint_without_permission(self):
         for path in self.endpoints['invalid_permission']:
-            with self.assertRaises(ContentNotCreatedException):
-                new_resource = self.api.post(path, {})
+            with self.assertRaises(ForbiddenEndpointException):
+                self.api.post(path, {})
 
     def test_endpoint_blob(self):
         pass
 
     def test_endpoint_clob(self):
-        pass
+        entry = self.valid_entry
+        entry.update(
+            {'CLOBCOL': self._random_string(10000)}
+        )
+        new_resource = self.api.post(self.valid_endpoint, entry)
+
+        self.assertIsInstance(new_resource, APIPOSTResponse)
+
+
+class TestPUTRequest(TestAPIRequest):
+    primary_key = 'ID_UNIT_TEST'
+
+    @property
+    def __valid_entry(self):
+        """
+        :rtype : dict
+        """
+        return self.api.get(self.valid_endpoint).content[0]
+
+    def test_valid_endpoint_without_primary_key(self):
+        PROJNAME = self._random_string(3)
+        with self.assertRaises(MissingPrimaryKeyException):
+            result = self.api.put(self.valid_endpoint, {'PROJNAME': PROJNAME})
+
+    def test_valid_endpoint_with_permission(self):
+        PROJNAME = self._random_string(3)
+        result = self.api.put(self.valid_endpoint, {
+            self.primary_key: self.__valid_entry[self.primary_key],
+            'PROJNAME': PROJNAME
+        })
+        self.assertIsInstance(result, APIPUTResponse)
+
+        updated_entry = self.api.get(
+            self.valid_endpoint,
+            {self.primary_key: self.__valid_entry[self.primary_key]}
+        ).first()
+        self.assertEqual(updated_entry['PROJNAME'], PROJNAME)
+
+    def test_valid_endpoint_without_permission(self):
+        for path in self.endpoints['invalid_permission']:
+            with self.assertRaises(ForbiddenEndpointException):
+                self.api.put(path, {'INVALID_FIELD_CVCBSDG': 'An invalid data'})
+
+    def test_valid_endpoint_with_valid_permission_and_invalid_parameters_types(self):
+        entry = self.__valid_entry
+        entry.update({'PROJNAME': 235235})
+        with self.assertRaises(InvalidParametersException):
+            self.api.put(self.valid_endpoint, entry)
+
