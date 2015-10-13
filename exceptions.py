@@ -29,3 +29,23 @@ class InvalidAPIKeyException(APIException):
 
 class NoContentException(APIException, ValueError):
     pass
+
+
+class ContentNotFoundException(APIException):
+    pass
+
+
+class InvalidParametersException(APIException):
+    pass
+
+
+class NothingToUpdateException(APIException):
+    pass
+
+
+class UnhandledAPIException(APIException):
+    pass
+
+
+class MissingPrimaryKeyException(APIException):
+    pass

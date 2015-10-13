@@ -21,10 +21,12 @@ class APIResponse(object):
         :type response: requests.models.Response
         """
         self.response = response
-        if http.FORBIDDEN == response.status_code:
-            raise ForbiddenEndpointException(self.response, self.response.text, self.response.status_code)
-        elif http.UNAUTHORIZED == response.status_code:
-            raise InvalidAPIKeyException(self.response, self.response.text, self.response.status_code)
+        if http.FORBIDDEN == self.response.status_code:
+            raise ForbiddenEndpointException(self.response)
+        elif http.UNAUTHORIZED == self.response.status_code:
+            raise InvalidAPIKeyException(self.response)
+        elif http.INTERNAL_SERVER_ERROR == self.response.status_code:
+            raise UnhandledAPIException(self.response)
 
 
 class APIResultObject(APIResponse):
@@ -92,28 +94,35 @@ class APIPOSTResponse(APIResponse):
             self.request = request
             self.insertId = self.response.headers['id']
             print "Inseriu em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
-        if http.NOT_FOUND == response.status_code:  # TODO api retornando status code errado para esse caso
-            raise ContentNotCreatedException(response, response.text, response.status_code)
+        elif http.NOT_FOUND == self.response.status_code:  # TODO api retornando status code errado para esse caso
+            raise ContentNotCreatedException(self.response)
+        elif http.BAD_REQUEST == self.response.status_code:
+            raise InvalidParametersException(self.response)
 
     def new_content_uri(self):
         return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
 
 
-class APIPUTResponse(object):
+class APIPUTResponse(APIResponse):
     def __init__(self, response, request):
         """
-
         :type response: Response
         :param response:
         :param request:
         :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
         """
-        self.response = response
-        if not response.status_code == 200:
-            raise PUTException("Erro %d - %s" % (self.response.status_code, self.response.content))
-
-        self.request = request
-        self.affectedRows = self.response.headers['Affected']
+        super(APIPUTResponse, self).__init__(response)
+        if http.OK == self.response.status_code:
+            self.request = request
+            self.affectedRows = self.response.headers['Affected']
+        elif http.NOT_FOUND == self.response.status_code:
+            raise ContentNotFoundException(self.response)
+        elif http.UNPROCESSABLE_ENTITY == self.response.status_code:
+            raise InvalidParametersException(self.response)
+        elif http.NO_CONTENT == self.response.status_code:
+            raise NothingToUpdateException(self.response)
+        elif http.BAD_REQUEST == self.response.status_code:
+            raise MissingPrimaryKeyException(self.response)
 
 
 class APIDELETEResponse(APIPUTResponse):

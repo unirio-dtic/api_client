@@ -221,10 +221,8 @@ class UNIRIOAPIRequest(object):
         :param params: dictionary with URL parameters
         :rtype APIPUTResponse
         """
-        try:
-            url = self._url_with_path(path)
-            payload = self.payload(params)
-            response = requests.put(url, payload, verify=False)
-            return APIPUTResponse(response, self)
-        except Exception:
-            raise PUTException
+        url = self._url_with_path(path)
+        payload = self.payload(params)
+        response = requests.put(url, payload, verify=False)
+
+        return APIPUTResponse(response, self)
