@@ -6,6 +6,7 @@ from unirio.api.result import *
 import warnings
 import string
 
+env = APIServer.LOCAL
 
 class TestAPIRequest(unittest.TestCase):
     API_KEY_VALID = "1a404993f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07fdfbe0587c6ef14e5c92"
@@ -18,7 +19,8 @@ class TestAPIRequest(unittest.TestCase):
     }
 
     def setUp(self):
-        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, APIServer.LOCAL, cache=None)
+        global env
+        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, env, cache=None)
 
     def _random_string(self, length):
         return ''.join(random.choice(string.lowercase) for i in xrange(length))
