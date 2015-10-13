@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-
-from gluon import current
 from datetime import datetime
 import requests
 from enum import Enum
-
-from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse, POSTException, PUTException
+from .exceptions import *
+from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse
 
 
 __all__ = ["UNIRIOAPIRequest"]
@@ -25,7 +23,7 @@ class UNIRIOAPIRequest(object):
     lastQuery = ""
     timeout = 5  # 5 seconds
 
-    def __init__(self, api_key, server=APIServer.LOCAL, debug=False, cache=current.cache.ram):
+    def __init__(self, api_key, server=APIServer.LOCAL, debug=False, cache=None):
         """
 
         :type server: str
@@ -165,7 +163,7 @@ class UNIRIOAPIRequest(object):
                 result_object = APIResultObject(r, self)
                 self.lastQuery = url
                 return result_object
-            except ValueError as e:
+            except APIException as e:
                 if cached:
                     return None
                 else:

@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+try:
+    import httplib as http
+except ImportError:
+    import http.client as http
+
+from .exceptions import *
 
 __all__ = [
     "APIException",
@@ -7,22 +13,6 @@ __all__ = [
     "APIPUTResponse",
     "APIDELETEResponse"
 ]
-
-
-class APIException(Exception):
-    pass
-
-
-class POSTException(APIException):
-    pass
-
-
-class PUTException(APIException):
-    pass
-
-
-class DELETEException(APIException):
-    pass
 
 
 class APIResultObject(object):
@@ -41,14 +31,20 @@ class APIResultObject(object):
         :param api_request:
         :raise ValueError:
         """
-        try:
-            json = r.json()
-            self.content = json["content"]
-            self.fields = tuple(k for k in self.content[0].keys())
-            self.lmin = json["subset"][0]
-            self.lmax = json["subset"][1]
-        except ValueError:
-            raise ValueError("JSON decoding failed. Value may be None.")
+        if http.OK == r.status_code:
+            try:
+                json = r.json()
+                self.content = json["content"]
+                self.fields = tuple(k for k in self.content[0].keys())
+                self.lmin = json["subset"][0]
+                self.lmax = json["subset"][1]
+            except ValueError:
+                raise ValueError("JSON decoding failed. Value may be None.")
+
+        elif http.FORBIDDEN == r.status_code:
+            raise ForbiddenEndpointException(r, r.text, r.status_code)
+        elif http.NOT_FOUND == r.status_code:
+            raise InvalidEndpointException(r, r.text, r.status_code)
         self.request = api_request
 
     def next_request_for_result(self):
