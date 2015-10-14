@@ -35,7 +35,7 @@ class TestAPIRequest(unittest.TestCase):
 class TestAPIKey(TestAPIRequest):
     def test_valid_key(self):
         try:
-            result = self.api.get(self.valid_endpoint)
+            self.api.get(self.valid_endpoint)
         except InvalidAPIKeyException:
             self.fail("test_valid_key() failed. A valid key is being invalidated.")
 
@@ -69,6 +69,28 @@ class TestGETRequest(TestAPIRequest):
             result = self.api.get(self.valid_endpoint, {'ORDERBY': field})
             for i, j in zip(result.content, result.content[1:]):
                 self.assertTrue(i[field] <= j[field])
+
+    def test_valid_endpoint_with_permission_and_invalid_parameters(self):
+        result = self.api.get(
+            self.valid_endpoint,
+            {self._random_string(3): self._random_string(3) for i in xrange(0, 4)}
+        )
+        self.assertIsInstance(result, APIResultObject)
+
+    def test_valid_endpoint_with_permission_and_invalid_empty_parameters_value(self):
+        result = self.api.get(
+            self.valid_endpoint,
+            {self._random_string(3): '' for i in xrange(0, 4)}
+        )
+        self.assertIsInstance(result, APIResultObject)
+
+    def test_valid_endpoint_with_permission_and_list_parameters_types(self):
+        result = self.api.get(
+            self.valid_endpoint,
+            {'PROJNAME': tuple(self._random_string(i) for i in xrange(0, 10))}
+        )
+        self.assertIsInstance(result, APIResultObject)
+
 
 
 class TestPOSTRequest(TestAPIRequest):
