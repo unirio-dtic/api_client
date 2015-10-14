@@ -16,11 +16,12 @@ __all__ = [
 
 
 class APIResponse(object):
-    def __init__(self, response):
+    def __init__(self, response, request):
         """
         :type response: requests.models.Response
         """
         self.response = response
+        self.request = request
         if http.FORBIDDEN == self.response.status_code:
             raise ForbiddenEndpointException(self.response)
         elif http.UNAUTHORIZED == self.response.status_code:
@@ -45,7 +46,7 @@ class APIResultObject(APIResponse):
             :param api_request:
             :raise ValueError:
             """
-        super(APIResultObject, self).__init__(response)
+        super(APIResultObject, self).__init__(response, request)
         if http.OK == self.response.status_code:
             try:
                 json = self.response.json()
@@ -57,8 +58,7 @@ class APIResultObject(APIResponse):
                 raise NoContentException(self.response)
 
         elif http.NOT_FOUND == self.response.status_code:
-            raise InvalidEndpointException(self.response, self.response.text, self.response.status_code)
-        self.request = api_request
+            raise InvalidEndpointException(self.response)
 
     def next_request_for_result(self):
         """
@@ -89,7 +89,7 @@ class APIPOSTResponse(APIResponse):
         :param request:
         :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
         """
-        super(APIPOSTResponse, self).__init__(response)
+        super(APIPOSTResponse, self).__init__(response, request)
         if http.CREATED == response.status_code:
             self.request = request
             self.insertId = self.response.headers['id']
@@ -111,7 +111,7 @@ class APIPUTResponse(APIResponse):
         :param request:
         :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
         """
-        super(APIPUTResponse, self).__init__(response)
+        super(APIPUTResponse, self).__init__(response, request)
         if http.OK == self.response.status_code:
             self.request = request
             self.affectedRows = self.response.headers['Affected']
@@ -125,9 +125,12 @@ class APIPUTResponse(APIResponse):
             raise MissingPrimaryKeyException(self.response)
 
 
-class APIDELETEResponse(APIPUTResponse):
+class APIDELETEResponse(APIResponse):
     def __init__(self, response, request):
-        try:
-            super(APIDELETEResponse, self).__init__(response, request)
-        except PUTException:
-            raise DELETEException
+        super(APIDELETEResponse, self).__init__(response, request)
+        if http.OK == self.response.status_code:
+            pass
+        elif http.NOT_FOUND == self.response.status_code:
+            raise ContentNotFoundException(self.response)
+        elif http.FORBIDDEN == self.response.status_code:
+            pass
