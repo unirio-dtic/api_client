@@ -35,15 +35,13 @@ class APIResultObject(APIResponse):
     lmax = 0
     content = []
 
-    def __init__(self, response, api_request):
+    def __init__(self, response, request):
         """
             :type r: Response
             :type self.content: list
             :type self.lmin: int
             :type self.lmax: int
             :type self.count: int
-            :param r:
-            :param api_request:
             :raise ValueError:
             """
         super(APIResultObject, self).__init__(response, request)
@@ -129,8 +127,10 @@ class APIDELETEResponse(APIResponse):
     def __init__(self, response, request):
         super(APIDELETEResponse, self).__init__(response, request)
         if http.OK == self.response.status_code:
-            pass
+            self.affectedRows = int(self.response.headers['Affected'])
         elif http.NOT_FOUND == self.response.status_code:
             raise ContentNotFoundException(self.response)
-        elif http.FORBIDDEN == self.response.status_code:
-            pass
+        elif http.NO_CONTENT == self.response.status_code:
+            raise NothingToUpdateException(self.response)
+        elif http.BAD_REQUEST == self.response.status_code:
+            raise MissingPrimaryKeyException(self.response)
