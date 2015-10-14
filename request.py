@@ -84,14 +84,6 @@ class UNIRIOAPIRequest(object):
         request_url = self.server + "/" + path
         return request_url
 
-    def __add_request(self, method, path, params):
-        self.requests.append({
-            "method": method,
-            "path": path,
-            "params": params,
-            "timestamp": datetime.now()
-        })
-
     def url_query_data(self, params=None, fields=None):
         """
         The method provides the additional data to send to the API server in order to
@@ -190,9 +182,6 @@ class UNIRIOAPIRequest(object):
         payload = self.payload(params)
 
         response = requests.post(url, payload, verify=False)
-        # print response.url
-        if self.debug:
-            self.__add_request("POST", path, payload)
         return APIPOSTResponse(response, self)
 
     def delete(self, path, params):
