@@ -8,11 +8,14 @@ import string
 
 env = APIServer.LOCAL
 
+
 class TestAPIRequest(unittest.TestCase):
     API_KEY_VALID = "1a404993f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07fdfbe0587c6ef14e5c92"
     API_KEY_INVALID = "INVALIDA93f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07f0587c6ef14e5c93"
 
     valid_endpoint = 'UNIT_TEST'
+    valid_endpoint_pkey = 'ID_UNIT_TEST'
+
     endpoints = {
         'invalid_permission': ('PROJETOS', 'ALUNOS', 'PESSOAS',),
         'invalid_endpoints': ('fbsdfgsdfg', 'grgsuer9gsfh8sdfh', 'daba4a0as0haf')
@@ -24,6 +27,9 @@ class TestAPIRequest(unittest.TestCase):
 
     def _random_string(self, length):
         return ''.join(random.choice(string.lowercase) for i in xrange(length))
+
+    def _invalid_dummy_params(self):
+        return {'INVALID_FIELD_%s' % self._random_string(3): random.randint(100, 10000)}
 
 
 class TestAPIKey(TestAPIRequest):
@@ -105,8 +111,6 @@ class TestPOSTRequest(TestAPIRequest):
 
 
 class TestPUTRequest(TestAPIRequest):
-    primary_key = 'ID_UNIT_TEST'
-
     @property
     def __valid_entry(self):
         """
@@ -122,14 +126,14 @@ class TestPUTRequest(TestAPIRequest):
     def test_valid_endpoint_with_permission(self):
         PROJNAME = self._random_string(3)
         result = self.api.put(self.valid_endpoint, {
-            self.primary_key: self.__valid_entry[self.primary_key],
+            self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey],
             'PROJNAME': PROJNAME
         })
         self.assertIsInstance(result, APIPUTResponse)
 
         updated_entry = self.api.get(
             self.valid_endpoint,
-            {self.primary_key: self.__valid_entry[self.primary_key]}
+            {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}
         ).first()
         self.assertEqual(updated_entry['PROJNAME'], PROJNAME)
 
@@ -144,3 +148,48 @@ class TestPUTRequest(TestAPIRequest):
         with self.assertRaises(InvalidParametersException):
             self.api.put(self.valid_endpoint, entry)
 
+
+class TestDELETERequest(TestAPIRequest):
+    BIG_FAKE_ID = 2749873460397
+
+    @property
+    def __dummy_ids(self):
+        ids = {
+            'PROJETOS': {'ID_PROJETO': 100},
+            'PESSOAS': {'ID_PESSOA': 100},
+            'ALUNOS': {'ID_ALUNO': 100},
+        }
+        return ids
+
+    @property
+    def __valid_entry(self):
+        """
+        :rtype : dict
+        """
+        return self.api.get(self.valid_endpoint).content[0]
+
+    def test_valid_endpoint_with_permission(self):
+        result = self.api.delete(
+            self.valid_endpoint,
+            {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}
+        )
+        self.assertTrue(result.affectedRows >= 1)
+
+    def test_valid_endpoint_without_permission(self):
+        for path in self.endpoints['invalid_permission']:
+            with self.assertRaises(ForbiddenEndpointException):
+                self.api.delete(path, self.__dummy_ids[path])
+
+    def test_invalid_endpoint(self):
+        for path in self.endpoints['invalid_endpoints']:
+            with self.assertRaises(ContentNotFoundException):
+                self.api.delete(path, {})
+                self.api.delete(path, self._invalid_dummy_params())
+
+    def test_valid_endpoint_without_pkey(self):
+        with self.assertRaises(MissingPrimaryKeyException):
+            self.api.delete(self.valid_endpoint, self._invalid_dummy_params())
+
+    def test_invalid_entry(self):
+        with self.assertRaises(NothingToUpdateException):
+            self.api.delete(self.valid_endpoint, {self.valid_endpoint_pkey: self.BIG_FAKE_ID})
