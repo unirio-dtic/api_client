@@ -137,7 +137,7 @@ class UNIRIOAPIRequest(object):
         else:
             return path
 
-    def get(self, path, params=None, fields=None, cached=0):
+    def get(self, path, params=None, fields=None, cache_time=0):
         """
         Método para realizar uma requisição GET. O método utiliza a API Key fornecida ao instanciar 'UNIRIOAPIRequest'
         e uma chave inválida resulta em um erro HTTP
@@ -148,8 +148,8 @@ class UNIRIOAPIRequest(object):
         :param params: dictionary with URL parameters
         :type fields: list or tuple
         :param fields: list with de desired return fields. Empty list or None will return all Fields
-        :type cached: int
-        :param cached int for cached expiration time. 0 means no cached is applied
+        :type cache_time: int
+        :param cache_time int for cached expiration time. 0 means no cached is applied
         :rtype : APIResultObject
         :raises Exception may raise an exception if not able to instantiate APIResultObject
         """
@@ -164,17 +164,17 @@ class UNIRIOAPIRequest(object):
                 self.lastQuery = url
                 return result_object
             except APIException as e:
-                if cached:
+                if cache_time:
                     return None
                 else:
                     raise e
 
-        if cached:
+        if self.cache and cache_time:
             unique_hash = self.__cache_hash(path, params)
             cached_content = self.cache(
                 unique_hash,
                 lambda: _get(),
-                time_expire=cached
+                time_expire=cache_time
             )
             print unique_hash
             return cached_content
