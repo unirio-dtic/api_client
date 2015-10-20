@@ -112,7 +112,7 @@ class APIPUTResponse(APIResponse):
         super(APIPUTResponse, self).__init__(response, request)
         if http.OK == self.response.status_code:
             self.request = request
-            self.affectedRows = self.response.headers['Affected']
+            self.affectedRows = int(self.response.headers['Affected'])
         elif http.NOT_FOUND == self.response.status_code:
             raise ContentNotFoundException(self.response)
         elif http.UNPROCESSABLE_ENTITY == self.response.status_code:
