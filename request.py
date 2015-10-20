@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import requests
 from enum import Enum
 from .exceptions import *
@@ -23,7 +22,7 @@ class UNIRIOAPIRequest(object):
     lastQuery = ""
     timeout = 5  # 5 seconds
 
-    def __init__(self, api_key, server=APIServer.LOCAL, debug=False, cache=None):
+    def __init__(self, api_key, server=APIServer.LOCAL, debug=True, cache=None):
         """
 
         :type server: str
@@ -151,7 +150,8 @@ class UNIRIOAPIRequest(object):
             payload = self.url_query_data(params, fields)
             try:
                 r = requests.get(url, params=payload, verify=False)
-                print r.url     # debuging
+                if self.debug:
+                    print r.url
                 result_object = APIResultObject(r, self)
                 self.lastQuery = url
                 return result_object
@@ -168,7 +168,8 @@ class UNIRIOAPIRequest(object):
                 lambda: _get(),
                 time_expire=cache_time
             )
-            print unique_hash
+            if self.debug:
+                print unique_hash
             return cached_content
         else:
             return _get()
