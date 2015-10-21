@@ -71,11 +71,11 @@ class TestGETRequest(TestAPIRequest):
                 self.assertTrue(i[field] <= j[field])
 
     def test_valid_endpoint_with_permission_and_invalid_parameters(self):
-        result = self.api.get(
-            self.valid_endpoint,
-            {self._random_string(3): self._random_string(3) for i in xrange(0, 4)}
-        )
-        self.assertIsInstance(result, APIResultObject)
+        with self.assertRaises(InvalidParametersException):
+            self.api.get(
+                self.valid_endpoint,
+                {self._random_string(3): self._random_string(3) for i in xrange(0, 4)}
+            )
 
     def test_valid_endpoint_with_permission_and_invalid_empty_parameters_value(self):
         result = self.api.get(
@@ -166,7 +166,7 @@ class TestPUTRequest(TestAPIRequest):
 
     def test_valid_endpoint_with_valid_permission_and_invalid_parameters_types(self):
         entry = self.__valid_entry
-        entry.update({'PROJNAME': 235235})
+        entry.update({'PRSTDATE': self._random_string(5)})
         with self.assertRaises(InvalidParametersException):
             self.api.put(self.valid_endpoint, entry)
 

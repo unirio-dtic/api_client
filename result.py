@@ -3,8 +3,8 @@ try:
     import httplib as http
 except ImportError:
     import http.client as http
-
 from .exceptions import *
+import json
 
 __all__ = [
     "APIException",
@@ -19,15 +19,25 @@ class APIResponse(object):
     def __init__(self, response, request):
         """
         :type response: requests.models.Response
+        :raises APIException
         """
         self.response = response
         self.request = request
-        if http.FORBIDDEN == self.response.status_code:
-            raise ForbiddenEndpointException(self.response)
-        elif http.UNAUTHORIZED == self.response.status_code:
-            raise InvalidAPIKeyException(self.response)
-        elif http.INTERNAL_SERVER_ERROR == self.response.status_code:
-            raise UnhandledAPIException(self.response)
+        # TODO Como diferir dois casos de bad request ?
+        if http.OK == self.response.status_code:
+            pass
+        elif http.BAD_REQUEST == self.response.status_code and self.response.headers.get('InvalidParameters', False):
+            raise InvalidParametersException(self.response, json.loads(self.response.headers['InvalidParameters']))
+        else:
+            common_errors = {
+                http.FORBIDDEN: ForbiddenEndpointException(self.response),
+                http.UNAUTHORIZED: InvalidAPIKeyException(self.response),
+                http.INTERNAL_SERVER_ERROR: UnhandledAPIException(self.response)
+            }
+            try:
+                raise common_errors[self.response.status_code]
+            except KeyError:
+                pass
 
 
 class APIResultObject(APIResponse):
@@ -42,7 +52,7 @@ class APIResultObject(APIResponse):
             :type self.lmin: int
             :type self.lmax: int
             :type self.count: int
-            :raise ValueError:
+            :raises APIException, ValueError:
             """
         super(APIResultObject, self).__init__(response, request)
         if http.OK == self.response.status_code:
@@ -54,7 +64,6 @@ class APIResultObject(APIResponse):
                 self.lmax = json["subset"][1]
             except ValueError:
                 raise NoContentException(self.response)
-
         elif http.NOT_FOUND == self.response.status_code:
             raise InvalidEndpointException(self.response)
 
@@ -85,17 +94,20 @@ class APIPOSTResponse(APIResponse):
         :type request: unirio.api.request.UNIRIOAPIRequest
         :param response:
         :param request:
-        :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
+        :raises APIException: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
         """
         super(APIPOSTResponse, self).__init__(response, request)
         if http.CREATED == response.status_code:
             self.request = request
             self.insertId = self.response.headers['id']
-            print "Inseriu em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
-        elif http.NOT_FOUND == self.response.status_code:  # TODO api retornando status code errado para esse caso
-            raise ContentNotCreatedException(self.response)
-        elif http.BAD_REQUEST == self.response.status_code:
-            raise InvalidParametersException(self.response)
+            if self.request.debug:
+                print "Inseriu em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
+        else:
+            errors = {
+                http.NOT_FOUND:     ContentNotCreatedException(self.response),  # TODO api retornando status code errado para esse caso
+                http.BAD_REQUEST:   InvalidParametersException(self.response)
+            }
+            raise errors[self.response.status_code]
 
     def new_content_uri(self):
         return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
@@ -107,30 +119,34 @@ class APIPUTResponse(APIResponse):
         :type response: Response
         :param response:
         :param request:
-        :raise Exception: Uma exception é disparada caso, por algum motivo, o conteúdo não seja criado
+        :raises APIException
         """
         super(APIPUTResponse, self).__init__(response, request)
         if http.OK == self.response.status_code:
             self.request = request
             self.affectedRows = int(self.response.headers['Affected'])
-        elif http.NOT_FOUND == self.response.status_code:
-            raise ContentNotFoundException(self.response)
-        elif http.UNPROCESSABLE_ENTITY == self.response.status_code:
-            raise InvalidParametersException(self.response)
-        elif http.NO_CONTENT == self.response.status_code:
-            raise NothingToUpdateException(self.response)
-        elif http.BAD_REQUEST == self.response.status_code:
-            raise MissingPrimaryKeyException(self.response)
+        else:
+            errors = {
+                http.NOT_FOUND:             ContentNotFoundException(self.response),
+                http.UNPROCESSABLE_ENTITY:  InvalidParametersException(self.response),
+                http.NO_CONTENT:            NothingToUpdateException(self.response),
+                http.BAD_REQUEST:           MissingPrimaryKeyException(self.response)
+            }
+            raise errors[self.response.status_code]
 
 
 class APIDELETEResponse(APIResponse):
     def __init__(self, response, request):
+        """
+        :raises APIException
+        """
         super(APIDELETEResponse, self).__init__(response, request)
         if http.OK == self.response.status_code:
             self.affectedRows = int(self.response.headers['Affected'])
-        elif http.NOT_FOUND == self.response.status_code:
-            raise ContentNotFoundException(self.response)
-        elif http.NO_CONTENT == self.response.status_code:
-            raise NothingToUpdateException(self.response)
-        elif http.BAD_REQUEST == self.response.status_code:
-            raise MissingPrimaryKeyException(self.response)
+        else:
+            errors = {
+                http.NOT_FOUND:     ContentNotFoundException(self.response),
+                http.NO_CONTENT:    NothingToUpdateException(self.response),
+                http.BAD_REQUEST:   MissingPrimaryKeyException(self.response)
+            }
+            raise errors[self.response.status_code]
