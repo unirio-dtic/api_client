@@ -78,12 +78,10 @@ class APIResultObject(APIResponse):
 
     def first(self):
         """
-        Método de conveniência para retornar o primeiro dicionário de content ou None, caso o conteúdo seja vazio
+        Método de conveniência para retornar o primeiro dicionário de content
 
         :rtype : dict
         """
-        if not self.content:
-            return None
         return self.content[0]
 
 
