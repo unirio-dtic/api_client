@@ -28,6 +28,8 @@ class APIResponse(object):
             pass
         elif http.BAD_REQUEST == self.response.status_code and self.response.headers.get('InvalidParameters', False):
             raise InvalidParametersException(self.response, json.loads(self.response.headers['InvalidParameters']))
+        elif http.BAD_REQUEST == self.response.status_code and self.response.headers.get('InvalidEncoding', False):
+            raise InvalidParametersException(self.response, json.loads(self.response.headers['InvalidEncoding']))
         else:
             common_errors = {
                 http.FORBIDDEN: ForbiddenEndpointException(self.response),
