@@ -17,8 +17,6 @@ class UNIRIOAPIRequest(object):
     """
     UNIRIOAPIRequest is the main class for
     """
-    last_request = ""
-    timeout = 5  # 5 seconds
 
     def __init__(self, api_key, server=APIServer.LOCAL, debug=True, cache=None):
         """
@@ -33,6 +31,7 @@ class UNIRIOAPIRequest(object):
         self.requests = []
         self.debug = debug
         self.cache = cache
+        self.last_request = ""
 
     def _url_query_parameters_with_dictionary(self, params=None):
         """
@@ -81,7 +80,7 @@ class UNIRIOAPIRequest(object):
         request_url = self.server + "/" + path
         return request_url
 
-    def url_query_data(self, params=None, fields=None):
+    def _url_query_data(self, params=None, fields=None):
         """
         The method provides the additional data to send to the API server in order to
         perform a request.
@@ -98,7 +97,7 @@ class UNIRIOAPIRequest(object):
             parameters.update(return_fields)
         return parameters
 
-    def payload(self, params=None):
+    def _payload(self, params=None):
         """
         O payload de um POST/PUT obrigatoriamente devem ser do tipo dict.
 
@@ -145,7 +144,7 @@ class UNIRIOAPIRequest(object):
 
         def _get():
             url = self._url_with_path(path)
-            payload = self.url_query_data(params, fields)
+            payload = self._url_query_data(params, fields)
 
             r = requests.get(url, params=payload, verify=False)
             if self.debug:
@@ -174,7 +173,7 @@ class UNIRIOAPIRequest(object):
         :rtype : APIPOSTResponse
         """
         url = self._url_with_path(path)
-        payload = self.payload(params)
+        payload = self._payload(params)
 
         response = requests.post(url, payload, verify=False)
         return APIPOSTResponse(response, self)
@@ -187,7 +186,7 @@ class UNIRIOAPIRequest(object):
         :rtype : unirio.api.result.APIDELETEResponse
         """
         url = self._url_with_path(path)
-        payload = self.url_query_data(params)
+        payload = self._url_query_data(params)
         # contentURI = "%s?%s" % (url, payload)
 
         # gamb_payload = "&".join(["%s=%s" % (campo, payload[campo]) for campo in payload])
@@ -206,7 +205,7 @@ class UNIRIOAPIRequest(object):
         :rtype APIPUTResponse
         """
         url = self._url_with_path(path)
-        payload = self.payload(params)
+        payload = self._payload(params)
         response = requests.put(url, payload, verify=False)
 
         return APIPUTResponse(response, self)
