@@ -17,7 +17,7 @@ class UNIRIOAPIRequest(object):
     """
     UNIRIOAPIRequest is the main class for
     """
-    lastQuery = ""
+    last_request = ""
     timeout = 5  # 5 seconds
 
     def __init__(self, api_key, server=APIServer.LOCAL, debug=True, cache=None):
@@ -146,18 +146,14 @@ class UNIRIOAPIRequest(object):
         def _get():
             url = self._url_with_path(path)
             payload = self.url_query_data(params, fields)
-            try:
-                r = requests.get(url, params=payload, verify=False)
-                if self.debug:
-                    logging.debug(r.url)
-                result_object = APIResultObject(r, self)
-                self.lastQuery = url
-                return result_object
-            except APIException as e:
-                if cache_time:
-                    return None
-                else:
-                    raise e
+
+            r = requests.get(url, params=payload, verify=False)
+            if self.debug:
+                logging.debug(r.url)
+                self.last_request = url
+            result_object = APIResultObject(r, self)
+
+            return result_object
 
         if self.cache and cache_time:
             unique_hash = self.__cache_hash(path, params)
