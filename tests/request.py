@@ -1,10 +1,15 @@
+# coding=utf-8
 import random
 import unittest
+import warnings
 from unirio.api import UNIRIOAPIRequest, APIServer
 from unirio.api.exceptions import *
 from unirio.api.result import *
-import warnings
-import string
+try:
+    from string import lowercase
+except ImportError:
+    # Python 3.x
+    from string import ascii_lowercase as lowercase
 
 env = APIServer.LOCAL
 
@@ -23,10 +28,10 @@ class TestAPIRequest(unittest.TestCase):
 
     def setUp(self):
         global env
-        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, env, cache=None)
+        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, env, cache=None, debug=True)
 
     def _random_string(self, length):
-        return ''.join(random.choice(string.lowercase) for i in xrange(length))
+        return ''.join(random.choice(lowercase) for i in range(length))
 
     def _invalid_dummy_params(self):
         return {'INVALID_FIELD_%s' % self._random_string(3): random.randint(100, 10000)}
@@ -51,7 +56,7 @@ class TestGETRequest(TestAPIRequest):
             result = self.api.get(self.valid_endpoint)
             self.assertIsInstance(result, APIResultObject)
         except NoContentException:
-            warnings.warn("Test passed but should be run again with content on test endpoint %s" % self.valid_endpoint)
+            self.__no_content_warning()
 
     def test_valid_endpoint_without_permission(self):
         for path in self.endpoints['invalid_permission']:
@@ -74,23 +79,37 @@ class TestGETRequest(TestAPIRequest):
         with self.assertRaises(InvalidParametersException):
             self.api.get(
                 self.valid_endpoint,
-                {self._random_string(3): self._random_string(3) for i in xrange(0, 4)}
+                {self._random_string(3): self._random_string(3) for i in range(0, 4)}
             )
 
     def test_valid_endpoint_with_permission_and_invalid_empty_parameters_value(self):
         result = self.api.get(
             self.valid_endpoint,
-            {self._random_string(3): '' for i in xrange(0, 4)}
+            {self._random_string(3): '' for i in range(0, 4)}
         )
         self.assertIsInstance(result, APIResultObject)
 
     def test_valid_endpoint_with_permission_and_list_parameters_types(self):
         result = self.api.get(
             self.valid_endpoint,
-            {'PROJNAME': tuple(self._random_string(i) for i in xrange(0, 10))}
+            {'PROJNAME': tuple(self._random_string(i) for i in range(0, 10))}
         )
         self.assertIsInstance(result, APIResultObject)
 
+    def test_first_valid_content(self):
+        try:
+            result = self.api.get(self.valid_endpoint).first()
+            self.assertIsInstance(result, dict)
+        except NoContentException:
+            self.__no_content_warning()
+
+    def test_first_invalid_params(self):
+        for path in self.endpoints['invalid_permission'] + self.endpoints['invalid_endpoints']:
+            with self.assertRaises(APIException):
+                self.api.get(path).first()
+
+    def __no_content_warning(self):
+        warnings.warn("Test passed but should be run again with content on test endpoint %s" % self.valid_endpoint)
 
 
 class TestPOSTRequest(TestAPIRequest):

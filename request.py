@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import requests
+import logging
 from enum import Enum
 from .exceptions import *
 from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse
-
-
-__all__ = ["UNIRIOAPIRequest"]
 
 
 class APIServer(Enum):
@@ -19,8 +17,6 @@ class UNIRIOAPIRequest(object):
     """
     UNIRIOAPIRequest is the main class for
     """
-    lastQuery = ""
-    timeout = 5  # 5 seconds
 
     def __init__(self, api_key, server=APIServer.LOCAL, debug=True, cache=None):
         """
@@ -35,6 +31,7 @@ class UNIRIOAPIRequest(object):
         self.requests = []
         self.debug = debug
         self.cache = cache
+        self.last_request = ""
 
     def _url_query_parameters_with_dictionary(self, params=None):
         """
@@ -83,7 +80,7 @@ class UNIRIOAPIRequest(object):
         request_url = self.server + "/" + path
         return request_url
 
-    def url_query_data(self, params=None, fields=None):
+    def _url_query_data(self, params=None, fields=None):
         """
         The method provides the additional data to send to the API server in order to
         perform a request.
@@ -100,7 +97,7 @@ class UNIRIOAPIRequest(object):
             parameters.update(return_fields)
         return parameters
 
-    def payload(self, params=None):
+    def _payload(self, params=None):
         """
         O payload de um POST/PUT obrigatoriamente devem ser do tipo dict.
 
@@ -147,19 +144,15 @@ class UNIRIOAPIRequest(object):
 
         def _get():
             url = self._url_with_path(path)
-            payload = self.url_query_data(params, fields)
-            try:
-                r = requests.get(url, params=payload, verify=False)
-                if self.debug:
-                    print r.url
-                result_object = APIResultObject(r, self)
-                self.lastQuery = url
-                return result_object
-            except APIException as e:
-                if cache_time:
-                    return None
-                else:
-                    raise e
+            payload = self._url_query_data(params, fields)
+
+            r = requests.get(url, params=payload, verify=False)
+            if self.debug:
+                logging.debug(r.url)
+                self.last_request = url
+            result_object = APIResultObject(r, self)
+
+            return result_object
 
         if self.cache and cache_time:
             unique_hash = self.__cache_hash(path, params)
@@ -169,7 +162,7 @@ class UNIRIOAPIRequest(object):
                 time_expire=cache_time
             )
             if self.debug:
-                print unique_hash
+                logging.debug(unique_hash)
             return cached_content
         else:
             return _get()
@@ -180,7 +173,7 @@ class UNIRIOAPIRequest(object):
         :rtype : APIPOSTResponse
         """
         url = self._url_with_path(path)
-        payload = self.payload(params)
+        payload = self._payload(params)
 
         response = requests.post(url, payload, verify=False)
         return APIPOSTResponse(response, self)
@@ -193,7 +186,7 @@ class UNIRIOAPIRequest(object):
         :rtype : unirio.api.result.APIDELETEResponse
         """
         url = self._url_with_path(path)
-        payload = self.url_query_data(params)
+        payload = self._url_query_data(params)
         # contentURI = "%s?%s" % (url, payload)
 
         # gamb_payload = "&".join(["%s=%s" % (campo, payload[campo]) for campo in payload])
@@ -212,7 +205,7 @@ class UNIRIOAPIRequest(object):
         :rtype APIPUTResponse
         """
         url = self._url_with_path(path)
-        payload = self.payload(params)
+        payload = self._payload(params)
         response = requests.put(url, payload, verify=False)
 
         return APIPUTResponse(response, self)
