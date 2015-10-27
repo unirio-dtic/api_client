@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import requests
+import logging
 from enum import Enum
 from .exceptions import *
 from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse
-
-
-__all__ = ["UNIRIOAPIRequest"]
 
 
 class APIServer(Enum):
@@ -151,7 +149,7 @@ class UNIRIOAPIRequest(object):
             try:
                 r = requests.get(url, params=payload, verify=False)
                 if self.debug:
-                    print r.url
+                    logging.debug(r.url)
                 result_object = APIResultObject(r, self)
                 self.lastQuery = url
                 return result_object
@@ -169,7 +167,7 @@ class UNIRIOAPIRequest(object):
                 time_expire=cache_time
             )
             if self.debug:
-                print unique_hash
+                logging.debug(unique_hash)
             return cached_content
         else:
             return _get()
