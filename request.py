@@ -148,18 +148,12 @@ class UNIRIOAPIRequest(object):
         def _get():
             url = self._url_with_path(path)
             payload = self.url_query_data(params, fields)
-            try:
-                r = requests.get(url, params=payload, verify=False)
-                if self.debug:
-                    print r.url
-                result_object = APIResultObject(r, self)
-                self.lastQuery = url
-                return result_object
-            except APIException as e:
-                if cache_time:
-                    return None
-                else:
-                    raise e
+            r = requests.get(url, params=payload, verify=False)
+            if self.debug:
+                print r.url
+            result_object = APIResultObject(r, self)
+            self.lastQuery = url
+            return result_object
 
         if self.cache and cache_time:
             unique_hash = self.__cache_hash(path, params)
