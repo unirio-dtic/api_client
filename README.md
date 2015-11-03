@@ -120,7 +120,7 @@ params = {
 	'SEXO': 'F',
 	'ETNIA_ITEM': 1,
 	'NOME_PAI': 'Jonathan Kent',
-	'NOME_MAE': 'Martha Kent
+	'NOME_MAE': 'Martha Kent'
 	'ID_PESSOA': 345
 }
 result = api.post(path, params)	# type: unirio.api.result.APIPOSTResponse
