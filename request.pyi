@@ -9,10 +9,10 @@ class APIServer(Enum):
 
 
 class UNIRIOAPIRequest(object):
-    def __init__(self, api_key: str, server: APIServer, debug: bool, cache):
+    def __init__(self, api_key: str, server: APIServer, debug: bool, cache=None):
         pass
 
-    def get(self, path: str, params: Dict[str:Any], fields: list, cache_time: int) -> APIResultObject:
+    def get(self, path: str, params: Dict[str:Any], fields: list=None, cache_time: int=0) -> APIResultObject:
         pass
 
     def post(self, path: str, params: Dict[str:Any]) -> APIPOSTResponse:
