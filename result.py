@@ -32,7 +32,8 @@ class APIResponse(object):
             common_errors = {
                 http.FORBIDDEN: ForbiddenEndpointException(self.response),
                 http.UNAUTHORIZED: InvalidAPIKeyException(self.response),
-                http.INTERNAL_SERVER_ERROR: UnhandledAPIException(self.response)
+                http.INTERNAL_SERVER_ERROR: UnhandledAPIException(self.response),
+                http.NOT_FOUND: InvalidEndpointException(self.response)
             }
             try:
                 raise common_errors[self.response.status_code]
@@ -64,8 +65,6 @@ class APIResultObject(APIResponse):
                 self.lmax = json["subset"][1]
             except ValueError:
                 raise NoContentException(self.response)
-        elif http.NOT_FOUND == self.response.status_code:
-            raise InvalidEndpointException(self.response)
 
     def next_request_for_result(self):
         """
