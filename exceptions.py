@@ -35,6 +35,15 @@ class ContentNotFoundException(APIException):
     pass
 
 
+class InvalidEncodingException(APIException):
+    def __init__(self, response, msg=None, invalid_field=None):
+        """
+
+        :type invalid_field: list or tuple
+        """
+        super(InvalidEncodingException, self).__init__(response, msg)
+        self.invalid_field = invalid_field
+
 class InvalidParametersException(APIException):
     def __init__(self, response, msg=None, invalid_parameters=None):
         """

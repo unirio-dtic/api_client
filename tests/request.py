@@ -26,6 +26,8 @@ class TestAPIRequest(unittest.TestCase):
         'invalid_endpoints': ('fbsdfgsdfg', 'grgsuer9gsfh8sdfh', 'daba4a0as0haf')
     }
 
+    CLOB_FIELD = 'CLOBCOL'
+
     def setUp(self):
         global env
         self.api = UNIRIOAPIRequest(self.API_KEY_VALID, env, cache=None, debug=True)
@@ -144,7 +146,7 @@ class TestPOSTRequest(TestAPIRequest):
     def test_endpoint_clob(self):
         entry = self.valid_entry
         entry.update(
-            {'CLOBCOL': self._random_string(10000)}
+            {self.CLOB_FIELD: self._random_string(10000)}
         )
         new_resource = self.api.post(self.valid_endpoint, entry)
 
