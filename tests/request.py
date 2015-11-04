@@ -11,7 +11,7 @@ except ImportError:
     # Python 3.x
     from string import ascii_lowercase as lowercase
 
-env = APIServer.LOCAL
+env = APIServer.PRODUCTION_DEVELOPMENT
 
 
 class TestAPIRequest(unittest.TestCase):
@@ -70,12 +70,30 @@ class TestGETRequest(TestAPIRequest):
             with self.assertRaises(InvalidEndpointException):
                 self.api.get(path)
 
-    def test_orderby(self):
+    def __test_orderby(self, params, assertion):
         fields = ('PROJNAME', 'DEPTNO',)
         for field in fields:
-            result = self.api.get(self.valid_endpoint, {'ORDERBY': field})
+            params.update({'ORDERBY': field})
+            result = self.api.get(self.valid_endpoint, params)
             for i, j in zip(result.content, result.content[1:]):
-                self.assertTrue(i[field] <= j[field])
+                assertion(i[field], j[field])
+
+    def test_orderby_asc_without_sort(self):
+        self.__test_orderby({}, self.assertLessEqual)
+
+    def test_orderby_asc_with_sort(self):
+        self.__test_orderby({'SORT': 'ASC'}, self.assertLessEqual)
+
+    def test_orderby_desc(self):
+        self.__test_orderby({'SORT': 'DESC'}, self.assertGreaterEqual)
+
+    def test_orderby_invalid_field(self):
+        with self.assertRaises(InvalidParametersException):
+            self.api.get(self.valid_endpoint, {'ORDERBY': self._random_string(10)})
+
+    def test_orderby_with_invalid_sort(self):
+        with self.assertRaises(InvalidParametersException):
+            self.__test_orderby({'SORT': self._random_string(6)}, None)
 
     def test_valid_endpoint_with_permission_and_invalid_parameters(self):
         with self.assertRaises(InvalidParametersException):
@@ -116,7 +134,6 @@ class TestGETRequest(TestAPIRequest):
 
 class TestPOSTRequest(TestAPIRequest):
     not_null_keys = ('PROJNO', 'PROJNAME', 'DEPTNO', 'RESPEMP', 'MAJPROJ',)
-
 
     @property
     def valid_entry(self):
