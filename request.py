@@ -50,8 +50,6 @@ class UNIRIOAPIRequest(object):
         for k, v in params.items():
             if not str(v):
                 del params[k]
-            if isinstance(v, tuple):
-                params[k] = str(v)[1:-1]
 
         return params
 
