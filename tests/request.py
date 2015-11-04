@@ -11,7 +11,7 @@ except ImportError:
     # Python 3.x
     from string import ascii_lowercase as lowercase
 
-env = APIServer.PRODUCTION_DEVELOPMENT
+env = APIServer.LOCAL
 
 
 class TestAPIRequest(unittest.TestCase):
@@ -75,7 +75,8 @@ class TestGETRequest(TestAPIRequest):
         for field in fields:
             params.update({'ORDERBY': field})
             result = self.api.get(self.valid_endpoint, params)
-            for i, j in zip(result.content, result.content[1:]):
+            not_null_entries = [entry for entry in result.content if entry[field]]
+            for i, j in zip(not_null_entries, not_null_entries[1:]):
                 assertion(i[field], j[field])
 
     def test_orderby_asc_without_sort(self):
@@ -109,12 +110,17 @@ class TestGETRequest(TestAPIRequest):
         )
         self.assertIsInstance(result, APIResultObject)
 
-    def test_valid_endpoint_with_permission_and_list_parameters_types(self):
-        result = self.api.get(
-            self.valid_endpoint,
-            {'PROJNAME': tuple(self._random_string(i) for i in range(0, 10))}
-        )
-        self.assertIsInstance(result, APIResultObject)
+    def test_valid_endpoint_with_permission_and_invalid_list_parameters_types(self):
+        with self.assertRaises(NoContentException):
+            self.api.get(
+                self.valid_endpoint,
+                {'PROJNAME_SET': tuple(self._random_string(i) for i in range(0, 10))}
+            )
+
+    def test_valid_endpoint_with_permission_and_valid_list_parameters_types(self):
+        entries = tuple(entry['PROJNAME'] for entry in self.api.get(self.valid_endpoint).content if entry['PROJNAME'])
+        result = self.api.get(self.valid_endpoint, {'PROJNAME_SET': entries}).content
+        self.assertEqual(set(entries), set([i['PROJNAME'] for i in result]))
 
     def test_first_valid_content(self):
         try:
