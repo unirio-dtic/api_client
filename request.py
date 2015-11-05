@@ -45,11 +45,12 @@ class UNIRIOAPIRequest(object):
         if not params:
             params = {}
 
-        params.update({"API_KEY": self.api_key, "FORMAT": "JSON"})
+        params.update(self._payload)
+        params.update({"FORMAT": "JSON"})
 
         for k, v in params.items():
-            if not str(v):
-                del params[k]
+            if v is None or not str(v):
+                raise NullParameterException(None, msg="Parâmetro passado é nulo.", invalid_parameters=k)
 
         return params
 
@@ -95,7 +96,8 @@ class UNIRIOAPIRequest(object):
             parameters.update(return_fields)
         return parameters
 
-    def _payload(self, params=None):
+    @property
+    def _payload(self):
         """
         O payload de um POST/PUT obrigatoriamente devem ser do tipo dict.
 
@@ -104,11 +106,7 @@ class UNIRIOAPIRequest(object):
         :rtype : dict
         :return: Dicionário processado a ser enviado para a Request
         """
-        payload = dict(params)
-        payload.update({
-            "API_KEY": self.api_key
-        })
-        return payload
+        return {"API_KEY": self.api_key}
 
     def __cache_hash(self, path, params):
         """
@@ -171,9 +169,9 @@ class UNIRIOAPIRequest(object):
         :rtype : APIPOSTResponse
         """
         url = self._url_with_path(path)
-        payload = self._payload(params)
+        params.update(self._payload)
 
-        response = requests.post(url, payload, verify=False)
+        response = requests.post(url, params, verify=False)
         return APIPOSTResponse(response, self)
 
     def delete(self, path, params):
@@ -203,7 +201,7 @@ class UNIRIOAPIRequest(object):
         :rtype APIPUTResponse
         """
         url = self._url_with_path(path)
-        payload = self._payload(params)
-        response = requests.put(url, payload, verify=False)
+        params.update(self._payload)
+        response = requests.put(url, params, verify=False)
 
         return APIPUTResponse(response, self)

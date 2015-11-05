@@ -6,6 +6,7 @@ class APIException(Exception):
     def __init__(self, response, msg=None):
         """
         :type response: requests.models.Response
+        :param response: Dados da resposta do servidor
         """
         self.response = response
         self.msg = msg
@@ -52,6 +53,12 @@ class InvalidParametersException(APIException):
         """
         super(InvalidParametersException, self).__init__(response, msg)
         self.invalid_parameters = invalid_parameters
+
+class NullParameterException(InvalidParametersException):
+    """
+    Exceção quando algum parâmetro é nulo. Pagarei um café quando um parâmetro nulo não for de fato um erro (ex: where campo is null).
+    """
+    pass
 
 
 class NothingToUpdateException(APIException):
