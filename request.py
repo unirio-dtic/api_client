@@ -163,6 +163,22 @@ class UNIRIOAPIRequest(object):
         else:
             return _get()
 
+
+    def get_one(self,path, params=None, fields=None, cache_time=0):
+        """
+        Wrapper para não repetir tratamento de exceção.
+        :param path:
+        :param params:
+        :param fields:
+        :param cache_time:
+        :return:
+        """
+        try:
+            res = self.get(path, params,fields,cache_time)
+            return res.first()
+        except NoContentException:
+            return None
+
     def post(self, path, params):
         """
 
