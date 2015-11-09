@@ -164,9 +164,10 @@ class UNIRIOAPIRequest(object):
             return _get()
 
 
-    def get_one(self,path, params=None, fields=None, cache_time=0):
+    def get_single_result(self,path, params=None, fields=None, cache_time=0):
         """
         Wrapper para não repetir tratamento de exceção.
+
         :param path:
         :param params:
         :param fields:
@@ -174,6 +175,15 @@ class UNIRIOAPIRequest(object):
         :return:
         """
         try:
+
+            if not params:
+                params = {}
+
+            params.update({
+                "LMIN": 0,
+                "LMAX": 1
+            })
+            
             res = self.get(path, params,fields,cache_time)
             return res.first()
         except NoContentException:
