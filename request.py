@@ -164,9 +164,26 @@ class UNIRIOAPIRequest(object):
             return _get()
 
 
+    def get_result(self,path,params=None,fields=None,cache_time=0):
+        """
+        Wrapper para o método get com o objetivo de não repetir o tratamento de exceções 'bobas'. Retorna uma lista vazia caso seja lançada a exceção NoContentException.
+
+        :param path:
+        :param params:
+        :param fields:
+        :param cache_time:
+        :return:
+        """
+
+        try:
+            res = self.get(path, params,fields,cache_time)
+            return res.content
+        except NoContentException:
+            return []
+
     def get_single_result(self,path, params=None, fields=None, cache_time=0):
         """
-        Wrapper para não repetir tratamento de exceção.
+        Wrapper para não repetir tratamento de exceção e pegar apenas um resultado. Retorna None caso seja lançada a exceção de NoContentException.
 
         :param path:
         :param params:
@@ -183,7 +200,7 @@ class UNIRIOAPIRequest(object):
                 "LMIN": 0,
                 "LMAX": 1
             })
-            
+
             res = self.get(path, params,fields,cache_time)
             return res.first()
         except NoContentException:
