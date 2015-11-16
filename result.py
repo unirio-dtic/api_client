@@ -5,6 +5,7 @@ except ImportError:
     import http.client as http
 from .exceptions import *
 import json
+from collections import Iterable, Sized
 
 __all__ = [
     "APIException",
@@ -43,7 +44,7 @@ class APIResponse(object):
                 pass
 
 
-class APIResultObject(APIResponse):
+class APIResultObject(APIResponse, Iterable, Sized):
     lmin = 0
     lmax = 0
     content = []
@@ -84,6 +85,16 @@ class APIResultObject(APIResponse):
         :rtype : dict
         """
         return self.content[0]
+
+    def __iter__(self):
+        for item in self.content:
+            yield item
+
+    def __getitem__(self, item):
+        return self.content[item]
+
+    def __len__(self):
+        return len(self.content)
 
 
 class APIPOSTResponse(APIResponse):

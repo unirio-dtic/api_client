@@ -2,6 +2,7 @@
 import random
 import unittest
 import warnings
+from collections import Iterable, Sized
 from unirio.api import UNIRIOAPIRequest, APIServer
 from unirio.api.exceptions import *
 from unirio.api.result import *
@@ -139,7 +140,7 @@ class TestGETRequest(TestAPIRequest):
 
     def test_valid_endpoint_with_content_bypassing_no_content_exception(self):
         l = self.api.get(self.valid_endpoint, bypass_no_content_exception=True)
-        self.assertIsInstance(l, APIResultObject)
+        self.assertIsInstance(l, Iterable)
 
     def test_valid_endpoint_without_content_bypassing_no_content_exception(self):
         l = self.api.get(
@@ -147,7 +148,8 @@ class TestGETRequest(TestAPIRequest):
             {self.valid_endpoint_pkey: 99999999999999999999999999999},
             bypass_no_content_exception=True
         )
-        self.assertIsInstance(l, list)
+        self.assertIsInstance(l, Iterable)
+        self.assertIsInstance(l, Sized)
         self.assertEqual(len(l), 0)
 
     def test_get_invalid_endpoint_bypassing_no_content_exception(self):
