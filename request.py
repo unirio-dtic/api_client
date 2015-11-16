@@ -121,7 +121,7 @@ class UNIRIOAPIRequest(object):
         else:
             return path
 
-    def get(self, path, params=None, fields=None, cache_time=0):
+    def get(self, path, params=None, fields=None, cache_time=0, bypass_no_content_exception=False):
         """
         Método para realizar uma requisição GET. O método utiliza a API Key fornecida ao instanciar 'UNIRIOAPIRequest'
         e uma chave inválida resulta em um erro HTTP
@@ -134,10 +134,11 @@ class UNIRIOAPIRequest(object):
         :param fields: list with de desired return fields. Empty list or None will return all Fields
         :type cache_time: int
         :param cache_time int for cached expiration time. 0 means no cached is applied
+        :type bypass_no_content_exception: bool
+        :param bypass_no_content_exception: optional argument to indicate to return a empty list instead of raising a NoContentException
         :rtype : APIResultObject
         :raises Exception may raise an exception if not able to instantiate APIResultObject
         """
-
         def _get():
             url = self._url_with_path(path)
             payload = self._url_query_data(params, fields)
@@ -146,8 +147,12 @@ class UNIRIOAPIRequest(object):
             if self.debug:
                 logging.debug(r.url)
                 self.last_request = url
-            result_object = APIResultObject(r, self)
-
+            try:
+                result_object = APIResultObject(r, self)
+            except NoContentException as e:
+                if bypass_no_content_exception:
+                    return []
+                raise e
             return result_object
 
         if self.cache and cache_time:
@@ -163,30 +168,15 @@ class UNIRIOAPIRequest(object):
         else:
             return _get()
 
-    def get_result(self, path, params=None, fields=None, cache_time=0):
+    def get_single_result(self, path, params=None, fields=None, cache_time=0, bypass_no_content_exception=False):
         """
-        Wrapper para o método get com o objetivo de não repetir o tratamento de exceções 'bobas'. Retorna uma lista vazia caso seja lançada a exceção NoContentException.
+        Wrapper para pegar apenas um resultado.
 
         :param path:
         :param params:
         :param fields:
         :param cache_time:
-        :rtype: list
-        """
-        try:
-            res = self.get(path, params, fields, cache_time)
-            return res.content
-        except NoContentException:
-            return []
-
-    def get_single_result(self, path, params=None, fields=None, cache_time=0):
-        """
-        Wrapper para não repetir tratamento de exceção e pegar apenas um resultado. Retorna None caso seja lançada a exceção de NoContentException.
-
-        :param path:
-        :param params:
-        :param fields:
-        :param cache_time:
+        :param bypass_no_content_exception:
         :rtype: dict
         """
         try:
@@ -200,8 +190,10 @@ class UNIRIOAPIRequest(object):
 
             res = self.get(path, params, fields, cache_time)
             return res.first()
-        except NoContentException:
-            return None
+        except NoContentException as e:
+            if bypass_no_content_exception:
+                return {}
+            raise e
 
     def post(self, path, params):
         """
