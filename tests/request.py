@@ -137,31 +137,46 @@ class TestGETRequest(TestAPIRequest):
     def __no_content_warning(self):
         warnings.warn("Test passed but should be run again with content on test endpoint %s" % self.valid_endpoint)
 
-    def test_get_result_with_content(self):
-        l = self.api.get_result(self.valid_endpoint)
-        self.assertIsInstance(l, list)
-        self.assertIsInstance(l[0], dict)
+    def test_valid_endpoint_with_content_bypassing_no_content_exception(self):
+        l = self.api.get(self.valid_endpoint, bypass_no_content_exception=True)
+        self.assertIsInstance(l, APIResultObject)
 
-    def test_get_result_without_content(self):
-        l = self.api.get_result(self.valid_endpoint, {self.valid_endpoint_pkey: 99999999999999999999999999999})
+    def test_valid_endpoint_without_content_bypassing_no_content_exception(self):
+        l = self.api.get(
+            self.valid_endpoint,
+            {self.valid_endpoint_pkey: 99999999999999999999999999999},
+            bypass_no_content_exception=True
+        )
         self.assertIsInstance(l, list)
         self.assertEqual(len(l), 0)
 
-    def test_get_result_invalid_endpoint(self):
+    def test_get_invalid_endpoint_bypassing_no_content_exception(self):
         with self.assertRaises(InvalidEndpointException):
-            self.api.get_result(self.endpoints['invalid_endpoints'][0])
+            self.api.get(self.endpoints['invalid_endpoints'][0], bypass_no_content_exception=True)
 
     def test_get_single_result_with_content(self):
         single_result = self.api.get_single_result(self.valid_endpoint)
         self.assertIsInstance(single_result, dict)
 
     def test_get_single_result_without_content(self):
-        single_result = self.api.get_single_result(self.valid_endpoint, {self.valid_endpoint_pkey: 99999999999999999999999999999})
-        self.assertEquals(single_result, None)
+        with self.assertRaises(NoContentException):
+            self.api.get_single_result(self.valid_endpoint, {self.valid_endpoint_pkey: 99999999999999999999999999999})
 
     def test_get_single_result_invalid_endpoint(self):
         with self.assertRaises(InvalidEndpointException):
             self.api.get_single_result(self.endpoints['invalid_endpoints'][0])
+
+    def test_get_single_result_with_content_bypassing_no_content_exception(self):
+        single_result = self.api.get_single_result(self.valid_endpoint, bypass_no_content_exception=True)
+        self.assertIsInstance(single_result, dict)
+
+    def test_get_single_result_without_content_bypassing_no_content_exception(self):
+        single_result = self.api.get_single_result(self.valid_endpoint, {self.valid_endpoint_pkey: 99999999999999999999999999999}, bypass_no_content_exception=True)
+        self.assertEquals(single_result, None)
+
+    def test_get_single_result_invalid_endpoint_bypassing_no_content_exception(self):
+        with self.assertRaises(InvalidEndpointException):
+            self.api.get_single_result(self.endpoints['invalid_endpoints'][0], bypass_no_content_exception=True)
 
 
 class TestPOSTRequest(TestAPIRequest):

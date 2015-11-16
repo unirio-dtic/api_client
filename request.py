@@ -192,7 +192,7 @@ class UNIRIOAPIRequest(object):
             return res.first()
         except NoContentException as e:
             if bypass_no_content_exception:
-                return {}
+                return None
             raise e
 
     def post(self, path, params):
