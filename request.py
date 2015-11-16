@@ -163,8 +163,7 @@ class UNIRIOAPIRequest(object):
         else:
             return _get()
 
-
-    def get_result(self,path,params=None,fields=None,cache_time=0):
+    def get_result(self, path, params=None, fields=None, cache_time=0):
         """
         Wrapper para o método get com o objetivo de não repetir o tratamento de exceções 'bobas'. Retorna uma lista vazia caso seja lançada a exceção NoContentException.
 
@@ -172,16 +171,15 @@ class UNIRIOAPIRequest(object):
         :param params:
         :param fields:
         :param cache_time:
-        :return:
+        :rtype: list
         """
-
         try:
-            res = self.get(path, params,fields,cache_time)
+            res = self.get(path, params, fields, cache_time)
             return res.content
         except NoContentException:
             return []
 
-    def get_single_result(self,path, params=None, fields=None, cache_time=0):
+    def get_single_result(self, path, params=None, fields=None, cache_time=0):
         """
         Wrapper para não repetir tratamento de exceção e pegar apenas um resultado. Retorna None caso seja lançada a exceção de NoContentException.
 
@@ -189,10 +187,9 @@ class UNIRIOAPIRequest(object):
         :param params:
         :param fields:
         :param cache_time:
-        :return:
+        :rtype: dict
         """
         try:
-
             if not params:
                 params = {}
 
@@ -201,7 +198,7 @@ class UNIRIOAPIRequest(object):
                 "LMAX": 1
             })
 
-            res = self.get(path, params,fields,cache_time)
+            res = self.get(path, params, fields, cache_time)
             return res.first()
         except NoContentException:
             return None
