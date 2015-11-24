@@ -12,7 +12,7 @@ except ImportError:
     # Python 3.x
     from string import ascii_lowercase as lowercase
 
-env = APIServer.LOCAL
+env = APIServer.PRODUCTION_DEVELOPMENT
 
 
 class TestAPIRequest(unittest.TestCase):
@@ -29,6 +29,11 @@ class TestAPIRequest(unittest.TestCase):
 
     CLOB_FIELD = 'CLOBCOL'
 
+    @property
+    def _operador_mock(self):
+        # todo Para fins de teste, é relevante que COD_OPERADOR seja de tipo compativel com a realidade das tabelas?
+        return {'COD_OPERADOR': self._random_string(3)}
+
     def setUp(self):
         global env
         self.api = UNIRIOAPIRequest(self.API_KEY_VALID, env, cache=None, debug=True)
@@ -37,7 +42,9 @@ class TestAPIRequest(unittest.TestCase):
         return ''.join(random.choice(lowercase) for i in range(length))
 
     def _invalid_dummy_params(self):
-        return {'INVALID_FIELD_%s' % self._random_string(3): random.randint(100, 10000)}
+        params = {'INVALID_FIELD_%s' % self._random_string(3): random.randint(100, 10000)}
+        params.update(self._operador_mock)
+        return params
 
 
 class TestAPIKey(TestAPIRequest):
@@ -74,8 +81,9 @@ class TestGETRequest(TestAPIRequest):
     def __test_orderby(self, params, assertion):
         fields = ('PROJNAME', 'DEPTNO',)
         for field in fields:
-            params.update({'ORDERBY': field})
-            result = self.api.get(self.valid_endpoint, params)
+            p = params.copy()
+            p.update({'ORDERBY': field})
+            result = self.api.get(self.valid_endpoint, p)
             not_null_entries = [entry for entry in result.content if entry[field]]
             for i, j in zip(not_null_entries, not_null_entries[1:]):
                 assertion(i[field], j[field])
@@ -105,11 +113,12 @@ class TestGETRequest(TestAPIRequest):
             )
 
     def test_valid_endpoint_with_permission_and_invalid_empty_parameters_value(self):
-        result = self.api.get(
-            self.valid_endpoint,
-            {self._random_string(3): '' for i in range(0, 4)}
-        )
-        self.assertIsInstance(result, APIResultObject)
+        with self.assertRaises(NullParameterException):
+            result = self.api.get(
+                self.valid_endpoint,
+                {self._random_string(3): '' for i in range(0, 4)}
+            )
+            self.assertIsInstance(result, APIResultObject)
 
     def test_valid_endpoint_with_permission_and_invalid_list_parameters_types(self):
         with self.assertRaises(NoContentException):
@@ -182,7 +191,7 @@ class TestGETRequest(TestAPIRequest):
 
 
 class TestPOSTRequest(TestAPIRequest):
-    not_null_keys = ('PROJNO', 'PROJNAME', 'DEPTNO', 'RESPEMP', 'MAJPROJ',)
+    not_null_keys = ('PROJNO', 'PROJNAME', 'DEPTNO', 'RESPEMP', 'MAJPROJ', 'COD_OPERADOR')
 
     @property
     def valid_entry(self):
@@ -194,17 +203,17 @@ class TestPOSTRequest(TestAPIRequest):
 
     def test_valid_endpoint_with_permission_and_empty_arguments(self):
         with self.assertRaises(InvalidParametersException):
-            self.api.post(self.valid_endpoint, {})
+            a = self.api.post(self.valid_endpoint, self._operador_mock)
+            pass
 
     def test_valid_endpoint_with_permision_and_invalid_arguments(self):
         with self.assertRaises(InvalidParametersException):
-            entry = {k: random.randint(1000, 10000) for k in self.not_null_keys}
-            self.api.post(self.valid_endpoint, entry)
+            self.api.post(self.valid_endpoint, self._invalid_dummy_params())
 
     def test_valid_endpoint_without_permission(self):
         for path in self.endpoints['invalid_permission']:
             with self.assertRaises(ForbiddenEndpointException):
-                self.api.post(path, {})
+                self.api.post(path, self._operador_mock)
 
     def test_endpoint_blob(self):
         pass
@@ -229,27 +238,33 @@ class TestPUTRequest(TestAPIRequest):
 
     def test_valid_endpoint_without_primary_key(self):
         PROJNAME = self._random_string(3)
-        with self.assertRaises(MissingPrimaryKeyException):
-            result = self.api.put(self.valid_endpoint, {'PROJNAME': PROJNAME})
+        with self.assertRaises(MissingRequiredParameterException):
+            self.api.put(self.valid_endpoint, {'PROJNAME': PROJNAME})
 
     def test_valid_endpoint_with_permission(self):
         PROJNAME = self._random_string(3)
-        result = self.api.put(self.valid_endpoint, {
+        params = {
             self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey],
             'PROJNAME': PROJNAME
-        })
+        }
+        params.update(self._operador_mock)
+        result = self.api.put(self.valid_endpoint, params)
+
+        # Updated correcly with the right output ?
         self.assertIsInstance(result, APIPUTResponse)
 
         updated_entry = self.api.get(
             self.valid_endpoint,
             {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}
         ).first()
+
+        # Lets get it again and check if its the result is as expected
         self.assertEqual(updated_entry['PROJNAME'], PROJNAME)
 
     def test_valid_endpoint_without_permission(self):
         for path in self.endpoints['invalid_permission']:
             with self.assertRaises(ForbiddenEndpointException):
-                self.api.put(path, {'INVALID_FIELD_CVCBSDG': 'An invalid data'})
+                self.api.put(path, self._invalid_dummy_params())
 
     def test_valid_endpoint_with_valid_permission_and_invalid_parameters_types(self):
         entry = self.__valid_entry
@@ -264,9 +279,9 @@ class TestDELETERequest(TestAPIRequest):
     @property
     def __dummy_ids(self):
         ids = {
-            'PROJETOS': {'ID_PROJETO': 100},
-            'PESSOAS': {'ID_PESSOA': 100},
-            'ALUNOS': {'ID_ALUNO': 100},
+            'PROJETOS': {'ID_PROJETO': 100, 'COD_OPERADOR': self._random_string(3)},
+            'PESSOAS': {'ID_PESSOA': 100, 'COD_OPERADOR': self._random_string(3)},
+            'ALUNOS': {'ID_ALUNO': 100, 'COD_OPERADOR': self._random_string(3)},
         }
         return ids
 
@@ -278,10 +293,10 @@ class TestDELETERequest(TestAPIRequest):
         return self.api.get(self.valid_endpoint).content[0]
 
     def test_valid_endpoint_with_permission(self):
-        result = self.api.delete(
-            self.valid_endpoint,
-            {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}
-        )
+        params = {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}
+        params.update(self._operador_mock)
+        result = self.api.delete(self.valid_endpoint, params)
+
         self.assertTrue(result.affectedRows >= 1)
 
     def test_valid_endpoint_without_permission(self):
@@ -291,14 +306,15 @@ class TestDELETERequest(TestAPIRequest):
 
     def test_invalid_endpoint(self):
         for path in self.endpoints['invalid_endpoints']:
-            with self.assertRaises(ContentNotFoundException):
-                self.api.delete(path, {})
+            with self.assertRaises(InvalidEndpointException):
                 self.api.delete(path, self._invalid_dummy_params())
 
     def test_valid_endpoint_without_pkey(self):
-        with self.assertRaises(MissingPrimaryKeyException):
+        with self.assertRaises(InvalidParametersException):
             self.api.delete(self.valid_endpoint, self._invalid_dummy_params())
 
     def test_invalid_entry(self):
         with self.assertRaises(NothingToUpdateException):
-            self.api.delete(self.valid_endpoint, {self.valid_endpoint_pkey: self.BIG_FAKE_ID})
+            params = {self.valid_endpoint_pkey: self.BIG_FAKE_ID}
+            params.update(self._operador_mock)
+            self.api.delete(self.valid_endpoint, params)
