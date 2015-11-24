@@ -71,3 +71,13 @@ class UnhandledAPIException(APIException):
 
 class MissingPrimaryKeyException(APIException):
     pass
+
+
+class MissingRequiredParameterException(Exception):
+    def __init__(self, request, param):
+        """
+        :type request: UNIRIOAPIRequest
+        :type params: str
+        """
+        self.request = request
+        self.param = param

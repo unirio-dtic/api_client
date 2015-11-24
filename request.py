@@ -4,6 +4,25 @@ import logging
 from enum import Enum
 from .exceptions import *
 from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse
+from collections import Iterable
+
+
+def requires(params):
+    def decorator(fn):
+        def checker(*args, **kwargs):
+            def validate(param):
+                if param not in args[2]:
+                    raise MissingRequiredParameterException(args[0], param)
+            if isinstance(params, str):
+                validate(params)
+            elif isinstance(params, Iterable):
+                for param in params:
+                    validate(param)
+            else:
+                raise TypeError('params must be str or Iterable.')
+            return fn(*args, **kwargs)
+        return checker
+    return decorator
 
 
 class APIServer(Enum):
@@ -33,7 +52,7 @@ class UNIRIOAPIRequest(object):
         self.cache = cache
         self.last_request = ""
 
-    def _url_query_parameters_with_dictionary(self, params=None):
+    def _url_query_parameters_with_dictionary(self, params={}):
         """
         The method receiver a dictionary of URL parameters, validates and returns
         as an URL encoded string
@@ -195,6 +214,7 @@ class UNIRIOAPIRequest(object):
                 return None
             raise e
 
+    @requires('COD_OPERADOR')
     def post(self, path, params):
         """
 
@@ -206,6 +226,7 @@ class UNIRIOAPIRequest(object):
         response = requests.post(url, params, verify=False)
         return APIPOSTResponse(response, self)
 
+    @requires('COD_OPERADOR')
     def delete(self, path, params):
         """
         :type path: str
@@ -224,6 +245,7 @@ class UNIRIOAPIRequest(object):
 
         return r
 
+    @requires('COD_OPERADOR')
     def put(self, path, params):
         """
         :type path: str
