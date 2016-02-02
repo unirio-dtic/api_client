@@ -3,7 +3,7 @@ import requests
 import logging
 from enum import Enum
 from .exceptions import *
-from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse
+from .result import *
 from collections import Iterable
 
 
@@ -259,3 +259,24 @@ class UNIRIOAPIRequest(object):
         response = requests.put(url, params, verify=False)
 
         return APIPUTResponse(response, self)
+
+    def call_procedure(self, name, data, async=False, ws_group=None):
+        """
+        :param name: Procedure name to be called
+        :type name: str
+        :param data: Data to be serialized
+        :type data: list or tuple
+        :type async: bool
+        :param ws_group: The Websocket group that the async response should be posted
+        :type ws_group: str
+        """
+        url = self._url_with_path("procedure/" + name)
+        _data = dict(data=data,
+                     async=async,
+                     **self._payload)
+        response = requests.post(url, json=_data)
+
+        if async:
+            return APIProcedureAsyncResponse(response, self, ws_group)
+
+        return APIProcedureSyncResponse(response, self)
