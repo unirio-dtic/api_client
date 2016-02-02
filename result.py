@@ -12,7 +12,9 @@ __all__ = [
     "APIResultObject",
     "APIPOSTResponse",
     "APIPUTResponse",
-    "APIDELETEResponse"
+    "APIDELETEResponse",
+    "APIProcedureAsyncResponse",
+    "APIProcedureSyncResponse"
 ]
 
 
@@ -121,6 +123,28 @@ class APIPOSTResponse(APIResponse):
 
     def new_content_uri(self):
         return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
+
+
+class APIProcedureSyncResponse(APIResponse):
+    def __init__(self, response, request):
+        super(APIProcedureSyncResponse, self).__init__(response, request)
+        if http.CREATED == response.status_code:
+            self.content = self.response.json()
+        else:
+            raise UnhandledAPIException(self.response)
+
+
+class APIProcedureAsyncResponse(APIResponse):
+    def __init__(self, response, request, ws_group):
+        super(APIProcedureAsyncResponse, self).__init__(response, request)
+        if http.CREATED == response.status_code:
+            self.ws_group = ws_group
+            json = self.response.json()
+            self.accepted = []
+            self.refused = []
+            raise NotImplementedError
+        else:
+            raise UnhandledAPIException(self.response)
 
 
 class APIPUTResponse(APIResponse):
