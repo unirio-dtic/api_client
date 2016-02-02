@@ -1,6 +1,6 @@
 from enum import Enum
-from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse
-from typing import Dict, Any
+from .result import APIResultObject, APIPOSTResponse, APIPUTResponse, APIDELETEResponse, APIProcedureResponse
+from typing import Dict, Any, Iterable
 
 
 class APIServer(Enum):
@@ -22,4 +22,7 @@ class UNIRIOAPIRequest(object):
         pass
 
     def put(self, path: str, params: Dict[str:Any]) -> APIPUTResponse:
+        pass
+
+    def call_procedure(self, name: str, data: Iterable[Dict[str:Any]], async: bool=False, ws_group: str=None) -> APIProcedureResponse:
         pass

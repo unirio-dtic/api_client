@@ -125,26 +125,27 @@ class APIPOSTResponse(APIResponse):
         return self.response.headers['Location'] + "&API_KEY=" + self.request.api_key
 
 
-class APIProcedureSyncResponse(APIResponse):
+class APIProcedureResponse(APIResponse):
+    def __init__(self, response, request):
+        super(APIProcedureResponse, self).__init__(response, request)
+        if not http.CREATED == response.status_code:
+            raise UnhandledAPIException(self.response)
+
+
+class APIProcedureSyncResponse(APIProcedureResponse):
     def __init__(self, response, request):
         super(APIProcedureSyncResponse, self).__init__(response, request)
-        if http.CREATED == response.status_code:
-            self.content = self.response.json()
-        else:
-            raise UnhandledAPIException(self.response)
+        self.content = self.response.json()
 
 
-class APIProcedureAsyncResponse(APIResponse):
+class APIProcedureAsyncResponse(APIProcedureResponse):
     def __init__(self, response, request, ws_group):
         super(APIProcedureAsyncResponse, self).__init__(response, request)
-        if http.CREATED == response.status_code:
-            self.ws_group = ws_group
-            json = self.response.json()
-            self.accepted = []
-            self.refused = []
-            raise NotImplementedError
-        else:
-            raise UnhandledAPIException(self.response)
+        self.ws_group = ws_group
+        json = self.response.json()
+        self.accepted = []
+        self.refused = []
+        raise NotImplementedError
 
 
 class APIPUTResponse(APIResponse):
