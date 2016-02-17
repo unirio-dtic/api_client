@@ -24,5 +24,5 @@ class UNIRIOAPIRequest(object):
     def put(self, path: str, params: Dict[str:Any]) -> APIPUTResponse:
         pass
 
-    def call_procedure(self, name: str, data: Iterable[Dict[str:Any]], async: bool=False, ws_group: str=None) -> APIProcedureResponse:
+    def call_procedure(self, name: str, data: Iterable[Dict[str:Any]], fields: list=None, async: bool=False, ws_group: str=None) -> APIProcedureResponse:
         pass

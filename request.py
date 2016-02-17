@@ -260,8 +260,10 @@ class UNIRIOAPIRequest(object):
 
         return APIPUTResponse(response, self)
 
-    def call_procedure(self, name, data, async=False, ws_group=None):
+    def call_procedure(self, name, data, fields=None, async=False, ws_group=None):
         """
+        :type fields: tuple or list
+        :param fields: list with de desired return fields. Empty list or None will return all
         :param name: Procedure name to be called
         :type name: str
         :param data: Data to be serialized
@@ -273,6 +275,7 @@ class UNIRIOAPIRequest(object):
         url = self._url_with_path("procedure/" + name)
         _data = dict(data=data,
                      async=async,
+                     fields=fields or [],
                      **self._payload)
         response = requests.post(url, json=_data)
 
