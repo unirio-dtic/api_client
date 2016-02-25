@@ -11,6 +11,7 @@ from datetime import date
 from unirio.api import UNIRIOAPIRequest, APIServer
 from unirio.api.exceptions import *
 from unirio.api.result import *
+
 try:
     from string import lowercase
 except ImportError:
@@ -187,7 +188,9 @@ class TestGETRequest(TestAPIRequest):
         self.assertIsInstance(single_result, dict)
 
     def test_get_single_result_without_content_bypassing_no_content_exception(self):
-        single_result = self.api.get_single_result(self.valid_endpoint, {self.valid_endpoint_pkey: 99999999999999999999999999999}, bypass_no_content_exception=True)
+        single_result = self.api.get_single_result(self.valid_endpoint,
+                                                   {self.valid_endpoint_pkey: 99999999999999999999999999999},
+                                                   bypass_no_content_exception=True)
         self.assertEquals(single_result, None)
 
     def test_get_single_result_invalid_endpoint_bypassing_no_content_exception(self):
@@ -207,9 +210,13 @@ class TestPOSTRequest(TestAPIRequest):
         self.assertIsInstance(new_resource, APIPOSTResponse)
 
     def test_valid_endpoint_with_permission_and_empty_arguments(self):
-        with self.assertRaises(InvalidParametersException):
-            a = self.api.post(self.valid_endpoint, self._operador_mock)
-            pass
+        try:
+            result = self.api.post(self.valid_endpoint, self._operador_mock)
+        except APIException as e:
+            self.assertIsInstance(e, InvalidParametersException)
+        else:
+            self.assertIsInstance(result, APIPOSTResponse,
+                                  "Tabela não possui campos obrigatórios e teste passou sem cumprir seu propósito")
 
     def test_valid_endpoint_with_permision_and_invalid_arguments(self):
         with self.assertRaises(InvalidParametersException):
