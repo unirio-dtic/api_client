@@ -45,6 +45,7 @@ class InvalidEncodingException(APIException):
         super(InvalidEncodingException, self).__init__(response, msg)
         self.invalid_field = invalid_field
 
+
 class InvalidParametersException(APIException):
     def __init__(self, response, msg=None, invalid_parameters=None):
         """
@@ -81,3 +82,17 @@ class MissingRequiredParameterException(Exception):
         """
         self.request = request
         self.param = param
+
+
+class ProcedureException(APIException):
+    pass
+
+
+class MissingRequiredFieldsException(ProcedureException):
+    def __init__(self, response, msg=None, fields=None):
+        """
+        Algum dataset não forneceu todos os fields necessários pela procedure
+        :type invalid_parameters: list or tuple
+        """
+        super(MissingRequiredFieldsException, self).__init__(response, msg)
+        self.fields = fields
