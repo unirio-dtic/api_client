@@ -4,14 +4,11 @@ import unittest
 import warnings
 from collections import Iterable, Sized
 
-from datetime import timedelta
-
-from datetime import date
+from datetime import timedelta, date
 
 from unirio.api import UNIRIOAPIRequest, APIServer
 from unirio.api.exceptions import *
 from unirio.api.result import *
-
 try:
     from string import lowercase
 except ImportError:
@@ -228,7 +225,13 @@ class TestPOSTRequest(TestAPIRequest):
                 self.api.post(path, self._operador_mock)
 
     def test_endpoint_blob(self):
-        pass
+        from base64 import b64encode
+        entry = self.__valid_entry.copy()
+        with open(__file__, 'r') as f:
+            entry['BLOBCOL'] = b64encode(f.read())
+
+            result = self.api.put(self.valid_endpoint, entry)
+            self.assertIsInstance(result, APIPUTResponse)
 
     def test_endpoint_clob(self):
         entry = self.valid_entry
