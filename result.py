@@ -128,8 +128,10 @@ class APIPOSTResponse(APIResponse):
 class APIProcedureResponse(APIResponse):
     def __init__(self, response, request):
         super(APIProcedureResponse, self).__init__(response, request)
-        if not http.CREATED == response.status_code:
-            raise UnhandledAPIException(self.response)
+        if http.BAD_REQUEST == response.status_code:
+            raise MissingRequiredFieldsException(self.response, self.response.text)
+        elif not http.CREATED == response.status_code:
+            raise NotImplementedError("Esse erro era desconhecido. Analise o motivo e a necessidade de novo tipo de exception")
 
 
 class APIProcedureSyncResponse(APIProcedureResponse):
@@ -159,7 +161,9 @@ class APIPUTResponse(APIResponse):
         super(APIPUTResponse, self).__init__(response, request)
         if http.OK == self.response.status_code:
             self.request = request
-            self.affectedRows = int(self.response.headers['Affected'])
+            # todo: Pode ser OK e não ter affectedRows em caso de update de blob. Relacionado a issue do server
+            self.affectedRows = self.response.headers.get('Affected')
+
         else:
             errors = {
                 http.NOT_FOUND:             ContentNotFoundException(self.response),
