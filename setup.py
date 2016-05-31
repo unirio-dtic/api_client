@@ -1,8 +1,8 @@
 # coding=utf-8
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
-VERSION = '1.0.0'
+VERSION = '1.0.2'
 
 here = path.abspath(path.dirname(__file__))
 
@@ -16,7 +16,7 @@ with open('requirements.txt') as f:
 setup(
     name='unirio-api',
     version=VERSION,
-    packages=['unirio.api'],
+    packages=find_packages(exclude=['*test*']),
     description='Client package for the RESTful api provided by the Universidade '
                 'Federal do Estado do Rio de Janeiro (UNIRIO)',
     long_description=README,

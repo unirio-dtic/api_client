@@ -4,6 +4,12 @@
 Python module for the API provided by the Universidade Federal do Estado do Rio de Janeiro (UNIRIO)
 Please visit http://sistemas.unirio.br/api for futher information.
 
+## Installing
+
+```
+pip install unirio-api
+```
+
 ## File Structure
 
 ```text
