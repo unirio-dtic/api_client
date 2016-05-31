@@ -1,2 +1,5 @@
 *.pyc
 *.pyo
+/build/
+/dist/
+/unirio_api.egg-info/
