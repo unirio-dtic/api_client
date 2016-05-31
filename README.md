@@ -1,4 +1,5 @@
 # API
+![PyPi version](https://img.shields.io/pypi/v/unirio-api.svg) ![Py versions](https://img.shields.io/pypi/pyversions/unirio-api.svg)
 
 Python module for the API provided by the Universidade Federal do Estado do Rio de Janeiro (UNIRIO)
 Please visit http://sistemas.unirio.br/api for futher information.

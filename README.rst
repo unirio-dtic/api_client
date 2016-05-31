@@ -1,6 +1,8 @@
 API
 ===
 
+|PyPi version| |Py versions|
+
 Python module for the API provided by the Universidade Federal do Estado
 do Rio de Janeiro (UNIRIO) Please visit http://sistemas.unirio.br/api
 for futher information.
@@ -257,3 +259,6 @@ should have to comply with the api cache duck typing, as well as its
 usage
 
 -  For default value references, check the API documentation.
+
+.. |PyPi version| image:: https://img.shields.io/pypi/v/unirio-api.svg
+.. |Py versions| image:: https://img.shields.io/pypi/pyversions/unirio-api.svg
