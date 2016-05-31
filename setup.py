@@ -23,10 +23,9 @@ setup(
     url='https://github.com/unirio-dtic/api_client',
     author='Diogo Magalhães Martins',
     author_email='magalhaesmartins@icloud.com',
-    # todo: Not sure....
     license='GPLv2',
     classifiers=[
-        'Development Status :: 5 - Stable',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'License :: Public Domain',
@@ -44,3 +43,5 @@ setup(
     keywords='unirio api rest sie development',
     install_requires=required
 )
+
+# todo: pre-publish -> pandoc --from=markdown --to=rst --output=README.rst README.md
