@@ -113,7 +113,7 @@ class APIPOSTResponse(APIResponse):
             self.request = request
             self.insertId = self.response.headers['id']
             if self.request.debug:
-                print "Inseriu em %s com a ID %s" % (self.response.headers['Location'], self.insertId)
+                print("Inseriu em %s com a ID %s" % (self.response.headers['Location'], self.insertId))
         else:
             errors = {
                 http.NOT_FOUND:     ContentNotCreatedException(self.response),  # TODO api retornando status code errado para esse caso
