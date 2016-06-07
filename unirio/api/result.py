@@ -6,16 +6,7 @@ except ImportError:
 from .exceptions import *
 import json
 from collections import Iterable, Sized
-
-__all__ = [
-    "APIException",
-    "APIResultObject",
-    "APIPOSTResponse",
-    "APIPUTResponse",
-    "APIDELETEResponse",
-    "APIProcedureAsyncResponse",
-    "APIProcedureSyncResponse"
-]
+from requests.structures import CaseInsensitiveDict
 
 
 class APIResponse(object):
@@ -63,7 +54,7 @@ class APIResultObject(APIResponse, Iterable, Sized):
         super(APIResultObject, self).__init__(response, request)
         if http.OK == self.response.status_code:
             try:
-                json = self.response.json()
+                json = self.response.json(object_hook=CaseInsensitiveDict)
                 self.content = json["content"]
                 self.fields = tuple(k for k in self.content[0].keys())
                 self.lmin = json["subset"][0]
