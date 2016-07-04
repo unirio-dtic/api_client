@@ -256,6 +256,10 @@ class UNIRIOAPIRequest(object):
         """
         url = self._url_with_path(path)
         params.update(self._payload)
+
+        if not isinstance(params, dict):
+            params = dict(params)  # todo: Fix para casos de CaseInsensitiveDict que não é serializable
+
         response = requests.put(url, params, verify=False)
 
         return APIPUTResponse(response, self)
