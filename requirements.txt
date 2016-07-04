@@ -1,2 +1,2 @@
 requests>=2.7.0
-enum>=0.4.4e
+enum34>=1.1.6
