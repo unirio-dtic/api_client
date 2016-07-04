@@ -4,6 +4,7 @@ import unittest
 from unirio.api import UNIRIOAPIRequest
 from unirio.api.exceptions import *
 from tests import config
+
 try:
     from string import lowercase
 except ImportError:
@@ -28,7 +29,7 @@ class TestAPIRequest(unittest.TestCase):
         return {'COD_OPERADOR': self._random_string(3)}
 
     def setUp(self):
-        self.api = UNIRIOAPIRequest(config.Keys[config.ENV].value, config.SERVER.value, cache=None, debug=True)
+        self.api = UNIRIOAPIRequest(config.KEY, config.SERVER, cache=None, debug=True)
 
     def _random_string(self, length):
         return ''.join(random.choice(lowercase) for i in range(length))
