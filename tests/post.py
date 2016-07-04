@@ -35,12 +35,14 @@ class TestPOSTRequest(TestAPIRequest):
 
     def test_endpoint_blob(self):
         from base64 import b64encode
-        entry = self.api.get_single_result(self.valid_endpoint)
+
+        entry = self.valid_entry.copy()
+
         with open(__file__, 'r') as f:
             entry['BLOBCOL'] = b64encode(f.read())
 
-            result = self.api.put(self.valid_endpoint, entry)
-            self.assertIsInstance(result, APIPUTResponse)
+            result = self.api.post(self.valid_endpoint, entry)
+            self.assertIsInstance(result, APIPOSTResponse)
 
     def test_endpoint_clob(self):
         entry = self.valid_entry

@@ -20,7 +20,7 @@ class TestDELETERequest(TestAPIRequest):
         """
         :rtype : dict
         """
-        return self.api.get(self.valid_endpoint).content[0]
+        return self.api.get_single_result(self.valid_endpoint)
 
     def test_valid_endpoint_with_permission(self):
         params = {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}

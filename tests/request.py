@@ -1,19 +1,18 @@
 # coding=utf-8
 import random
 import unittest
-from unirio.api import UNIRIOAPIRequest, APIServer
+from unirio.api import UNIRIOAPIRequest
 from unirio.api.exceptions import *
+from tests import config
 try:
     from string import lowercase
 except ImportError:
     # Python 3.x
     from string import ascii_lowercase as lowercase
 
-env = APIServer.PRODUCTION
-
 
 class TestAPIRequest(unittest.TestCase):
-    API_KEY_VALID = "94ebdcee824a8fc9876c4c0b22580540a8d2330da2ec089d2e396afce2ee20332383a2df43936763358021ef9d163a21"
+    API_KEY_VALID = "1a404993f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07fdfbe0587c6ef14e5c92"
     API_KEY_INVALID = "INVALIDA93f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07f0587c6ef14e5c93"
 
     valid_endpoint = 'UNIT_TEST'
@@ -33,7 +32,7 @@ class TestAPIRequest(unittest.TestCase):
 
     def setUp(self):
         global env
-        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, env, cache=None, debug=True)
+        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, config.ENV, cache=None, debug=True)
 
     def _random_string(self, length):
         return ''.join(random.choice(lowercase) for i in range(length))
