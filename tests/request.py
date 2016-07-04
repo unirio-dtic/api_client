@@ -12,9 +12,6 @@ except ImportError:
 
 
 class TestAPIRequest(unittest.TestCase):
-    API_KEY_VALID = "1a404993f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07fdfbe0587c6ef14e5c92"
-    API_KEY_INVALID = "INVALIDA93f3175002c90738a4e46b1d12c06ddcc42f01ffbbaecf3285b98f34dc3ac0b9db9e07f0587c6ef14e5c93"
-
     valid_endpoint = 'UNIT_TEST'
     valid_endpoint_pkey = 'ID_UNIT_TEST'
 
@@ -31,8 +28,7 @@ class TestAPIRequest(unittest.TestCase):
         return {'COD_OPERADOR': self._random_string(3)}
 
     def setUp(self):
-        global env
-        self.api = UNIRIOAPIRequest(self.API_KEY_VALID, config.ENV, cache=None, debug=True)
+        self.api = UNIRIOAPIRequest(config.Keys[config.ENV].value, config.SERVER.value, cache=None, debug=True)
 
     def _random_string(self, length):
         return ''.join(random.choice(lowercase) for i in range(length))
@@ -51,6 +47,6 @@ class TestAPIKey(TestAPIRequest):
             self.fail("test_valid_key() failed. A valid key is being invalidated.")
 
     def test_invalid_key(self):
-        self.api.api_key = self.API_KEY_INVALID
+        self.api.api_key = config.Keys['INVALID']
         with self.assertRaises(InvalidAPIKeyException):
             self.api.get(self.valid_endpoint)
