@@ -4,3 +4,8 @@
 /dist/
 /unirio_api.egg-info/
 .idea
+
+# Unit test / coverage reports
+.coverage
+.cache
+coverage.xml

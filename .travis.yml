@@ -9,3 +9,5 @@ python:
   - "pypy"
 install: "pip install -r requirements.txt"
 script: "python -m unittest -v tests"
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
