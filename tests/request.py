@@ -28,8 +28,22 @@ class TestAPIRequest(unittest.TestCase):
         # todo Para fins de teste, é relevante que COD_OPERADOR seja de tipo compativel com a realidade das tabelas?
         return {'COD_OPERADOR': self._random_string(3)}
 
+    def mock_blob(self):
+        """
+        :return: Uma string correspondente ao conteudo de um arquivo em seu formato b64
+        """
+        from base64 import b64encode
+
+        with open(__file__, 'r') as f:
+            file_content = f.read()
+            try:
+                return b64encode(file_content)
+            except TypeError:
+                # Python 3.x
+                return b64encode(bytes(file_content, encoding='utf-8')).decode('utf-8')
+
     def setUp(self):
-        self.api = UNIRIOAPIRequest(config.KEY, config.SERVER, cache=None, debug=True)
+        self.api = UNIRIOAPIRequest(config.KEY, config.SERVER, cache=None, debug=False)
 
     def _random_string(self, length):
         return ''.join(random.choice(lowercase) for i in range(length))

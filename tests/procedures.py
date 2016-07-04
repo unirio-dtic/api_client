@@ -10,15 +10,6 @@ class TestProcedureSyncRequest(TestAPIRequest):
     unauthorized_procedure = 'CriarProjetoPesquisa'
 
     @property
-    def mock_blob(self):
-        from base64 import b64encode
-
-        fstream = open(__file__, 'r')
-        file_b64 = b64encode(fstream.read())
-        fstream.close()
-        return file_b64
-
-    @property
     def mock_dataset(self):
         # todo: Melhorar mock
         return {
@@ -43,9 +34,9 @@ class TestProcedureSyncRequest(TestAPIRequest):
             'TITULO': self._random_string(40),
             'ID_UNIDADE': 123,
             # 'TEM_APOIO_FINANCEIRO': 'N'
-            'PROJETO_CONTEUDO_ARQUIVO': self.mock_blob,
+            'PROJETO_CONTEUDO_ARQUIVO': self.mock_blob(),
             'PROJETO_NOME_ARQUIVO': self._random_string(20),
-            'DEPARTAMENTO_CONTEUDO_ARQUIVO': self.mock_blob,
+            'DEPARTAMENTO_CONTEUDO_ARQUIVO': self.mock_blob(),
             'DEPARTAMENTO_NOME_ARQUIVO': self._random_string(20),
         }
 
@@ -74,7 +65,7 @@ class TestProcedureSyncRequest(TestAPIRequest):
         self.assertIsInstance(result, APIProcedureSyncResponse)
 
     def test_valid_procedure_with_fields(self):
-        fields = self.mock_dataset.keys()[4:]
+        fields = list(self.mock_dataset.keys())[4:]
         result = self.api.call_procedure(self.valid_procedure, (self.mock_dataset,), fields=fields)
         self.assertIsInstance(result, APIProcedureSyncResponse)
 

@@ -5,6 +5,9 @@ from enum import Enum
 from .exceptions import *
 from .result import *
 from collections import Iterable
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def requires(params):
