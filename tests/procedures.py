@@ -6,8 +6,8 @@ from tests.request import TestAPIRequest
 
 
 class TestProcedureSyncRequest(TestAPIRequest):
-    valid_procedure = 'CriarProjetoPesquisa'
-    unauthorized_procedure = 'FooProcedure'
+    valid_procedure = 'FooProcedure'
+    unauthorized_procedure = 'CriarProjetoPesquisa'
 
     @property
     def mock_blob(self):
@@ -20,7 +20,9 @@ class TestProcedureSyncRequest(TestAPIRequest):
 
     @property
     def mock_dataset(self):
+        # todo: Melhorar mock
         return {
+            'ID_UNIT_TEST': 9999,
             'ID_PROCEDENCIA': 8400145,
             'ID_INTERESSADO': 8400145,
             'ID_PROPRIETARIO': 34767,
