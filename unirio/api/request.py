@@ -37,7 +37,7 @@ class UNIRIOAPIRequest(object):
     UNIRIOAPIRequest is the main class for
     """
 
-    def __init__(self, api_key, server=APIServer.LOCAL, debug=True, cache=None):
+    def __init__(self, api_key, server=APIServer.LOCAL, debug=True, cache=None, cert=False):
         """
 
         :type server: str
@@ -51,6 +51,7 @@ class UNIRIOAPIRequest(object):
         self.debug = debug
         self.cache = cache
         self.last_request = ""
+        self.cert = cert
 
     def _url_query_parameters_with_dictionary(self, params={}):
         """
@@ -162,7 +163,7 @@ class UNIRIOAPIRequest(object):
             url = self._url_with_path(path)
             payload = self._url_query_data(params, fields)
 
-            r = requests.get(url, params=payload, verify=False)
+            r = requests.get(url, params=payload, verify=self.cert)
             if self.debug:
                 logging.debug(r.url)
                 self.last_request = url
@@ -223,7 +224,7 @@ class UNIRIOAPIRequest(object):
         url = self._url_with_path(path)
         params.update(self._payload)
 
-        response = requests.post(url, params, verify=False)
+        response = requests.post(url, params, verify=self.cert)
         return APIPOSTResponse(response, self)
 
     @requires('COD_OPERADOR')
@@ -240,7 +241,7 @@ class UNIRIOAPIRequest(object):
 
         # gamb_payload = "&".join(["%s=%s" % (campo, payload[campo]) for campo in payload])
         # contentURI = "%s?%s" % (url,gamb_payload)
-        req = requests.delete(url, data=payload, verify=False)
+        req = requests.delete(url, data=payload, verify=self.cert)
         r = APIDELETEResponse(req, self)
 
         return r
@@ -256,7 +257,11 @@ class UNIRIOAPIRequest(object):
         """
         url = self._url_with_path(path)
         params.update(self._payload)
-        response = requests.put(url, params, verify=False)
+
+        if not isinstance(params, dict):
+            params = dict(params)  # todo: Fix para casos de CaseInsensitiveDict que não é serializable
+
+        response = requests.put(url, params, verify=self.cert)
 
         return APIPUTResponse(response, self)
 
@@ -277,7 +282,7 @@ class UNIRIOAPIRequest(object):
                      async=async,
                      fields=fields or [],
                      **self._payload)
-        response = requests.post(url, json=_data)
+        response = requests.post(url, json=_data, verify=self.cert)
 
         if async:
             return APIProcedureAsyncResponse(response, self, ws_group)
