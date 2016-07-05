@@ -7,22 +7,52 @@ Python module for the API provided by the Universidade Federal do Estado
 do Rio de Janeiro (UNIRIO) Please visit http://sistemas.unirio.br/api
 for futher information.
 
+Installing
+----------
+
+::
+
+    pip install unirio-api
+
 File Structure
 --------------
 
 .. code:: text
 
     api/
-    ├── .git
-    ├── .gitignore
+    ├── MANIFEST.in
     ├── README.md
+    ├── README.rst
     ├── __init__.py
-    ├── exceptions.py
-    ├── request.py
-    ├── request.pyi
-    ├── result.py
-    └── tests
-        ├── request.py
+    ├── requirements.txt
+    ├── setup.cfg
+    ├── setup.py
+    ├── tests
+    │   ├── __init__.py
+    │   ├── config.py
+    │   ├── delete.py
+    │   ├── get.py
+    │   ├── post.py
+    │   ├── procedures.py
+    │   ├── put.py
+    │   ├── request.py
+    ├── unirio
+        ├── __init__.py
+        └── api
+            ├── __init__.py
+            ├── exceptions.py
+            ├── request.py
+            ├── request.pyi
+            ├── result.py
+
+Tests
+-----
+
+|Build Status| |codecov|
+
+::
+
+    python -m unittest -v tests
 
 UNIRIOAPIRequest
 ----------------
@@ -262,3 +292,7 @@ usage
 
 .. |PyPi version| image:: https://img.shields.io/pypi/v/unirio-api.svg
 .. |Py versions| image:: https://img.shields.io/pypi/pyversions/unirio-api.svg
+.. |Build Status| image:: https://img.shields.io/travis/unirio-dtic/api_client/master.svg?style=flat-square&label=Travis-CI
+   :target: https://travis-ci.org/unirio-dtic/api_client
+.. |codecov| image:: https://codecov.io/gh/unirio-dtic/api_client/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/unirio-dtic/api_client

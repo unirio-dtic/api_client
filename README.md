@@ -44,7 +44,7 @@ api/
 ## Tests
 
 [![Build Status](https://img.shields.io/travis/unirio-dtic/api_client/master.svg?style=flat-square&label=Travis-CI)](https://travis-ci.org/unirio-dtic/api_client)
-
+[![codecov](https://codecov.io/gh/unirio-dtic/api_client/branch/master/graph/badge.svg)](https://codecov.io/gh/unirio-dtic/api_client)
 ```
 python -m unittest -v tests
 ```
