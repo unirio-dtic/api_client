@@ -8,6 +8,7 @@ python:
   - "3.5-dev" # 3.5 development branch
   - "pypy"
 install: "pip install -r requirements.txt"
-script: "python -m unittest -v tests"
+script: "coverage run -m unittest -v tests"
+cache: pip
 after_success:
   - codecov
