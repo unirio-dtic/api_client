@@ -14,16 +14,39 @@ pip install unirio-api
 
 ```text
 api/
-├── .git
-├── .gitignore
+├── MANIFEST.in
 ├── README.md
+├── README.rst
 ├── __init__.py
-├── exceptions.py
-├── request.py
-├── request.pyi
-├── result.py
-└── tests
-    ├── request.py
+├── requirements.txt
+├── setup.cfg
+├── setup.py
+├── tests
+│   ├── __init__.py
+│   ├── config.py
+│   ├── delete.py
+│   ├── get.py
+│   ├── post.py
+│   ├── procedures.py
+│   ├── put.py
+│   ├── request.py
+├── unirio
+    ├── __init__.py
+    └── api
+        ├── __init__.py
+        ├── exceptions.py
+        ├── request.py
+        ├── request.pyi
+        ├── result.py
+
+```
+
+## Tests
+
+[![Build Status](https://img.shields.io/travis/unirio-dtic/api_client/master.svg?style=flat-square&label=Travis-CI)](https://travis-ci.org/unirio-dtic/api_client)
+
+```
+python -m unittest -v tests
 ```
 
 ## UNIRIOAPIRequest

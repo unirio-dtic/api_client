@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 from os import path
 
-VERSION = '1.0.2'
+VERSION = '1.1.0'
 
 here = path.abspath(path.dirname(__file__))
 
@@ -33,6 +33,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
