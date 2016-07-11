@@ -14,7 +14,8 @@ def requires(params):
     def decorator(fn):
         def checker(*args, **kwargs):
             def validate(param):
-                if param not in args[2]:
+                lower_args = tuple(k.lower() for k in args[2].keys())
+                if param.lower() not in lower_args:
                     raise MissingRequiredParameterException(args[0], param)
             if isinstance(params, str):
                 validate(params)

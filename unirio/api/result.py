@@ -132,7 +132,10 @@ class APIProcedureResponse(APIResponse):
 class APIProcedureSyncResponse(APIProcedureResponse):
     def __init__(self, response, request):
         super(APIProcedureSyncResponse, self).__init__(response, request)
-        self.content = self.response.json()
+        self.content = self.response.json(object_hook=CaseInsensitiveDict)
+
+    def __eq__(self, other):
+        return self.content == other.content
 
 
 class APIProcedureAsyncResponse(APIProcedureResponse):
