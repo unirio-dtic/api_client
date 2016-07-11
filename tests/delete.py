@@ -1,21 +1,28 @@
 # coding=utf-8
+from unirio.api import APIDELETEResponse
+
+from tests import config
 from unirio.api.exceptions import *
 from tests.request import TestAPIRequest
+from tests.post import TestPOSTRequest
 
 
 class TestDELETERequest(TestAPIRequest):
     BIG_FAKE_ID = 2749873460397
 
+    def setUp(self):
+        super(TestDELETERequest, self).setUp()
+        self.api.post(self.valid_endpoint, TestPOSTRequest.valid_entry())
+
     @property
     def __dummy_ids(self):
         ids = {
-            'PROJETOS': {'ID_PROJETO': 100, 'COD_OPERADOR': self._random_string(3)},
-            'PESSOAS': {'ID_PESSOA': 100, 'COD_OPERADOR': self._random_string(3)},
-            'ALUNOS': {'ID_ALUNO': 100, 'COD_OPERADOR': self._random_string(3)},
+            'PROJETOS': {'ID_PROJETO': 100, 'COD_OPERADOR': 999},
+            'PESSOAS': {'ID_PESSOA': 100, 'COD_OPERADOR': 999},
+            'ALUNOS': {'ID_ALUNO': 100, 'COD_OPERADOR': 999},
         }
         return ids
 
-    @property
     def __valid_entry(self):
         """
         :rtype : dict
@@ -23,7 +30,7 @@ class TestDELETERequest(TestAPIRequest):
         return self.api.get_single_result(self.valid_endpoint)
 
     def test_valid_endpoint_with_permission(self):
-        params = {self.valid_endpoint_pkey: self.__valid_entry[self.valid_endpoint_pkey]}
+        params = {self.valid_endpoint_pkey: self.__valid_entry()[self.valid_endpoint_pkey]}
         params.update(self._operador_mock)
         result = self.api.delete(self.valid_endpoint, params)
 
@@ -48,3 +55,13 @@ class TestDELETERequest(TestAPIRequest):
             params = {self.valid_endpoint_pkey: self.BIG_FAKE_ID}
             params.update(self._operador_mock)
             self.api.delete(self.valid_endpoint, params)
+
+    def test_case_insensibility(self):
+        for case in config.STR_CASES:
+            params = {self.valid_endpoint_pkey: self.__valid_entry()[self.valid_endpoint_pkey]}
+            params.update(self._operador_mock)
+
+            result = self.api.delete(self.valid_endpoint, self._convert_entry_keys_case(case, params))
+
+            assert isinstance(result, APIDELETEResponse)
+            assert result.affectedRows == 1

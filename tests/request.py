@@ -26,7 +26,7 @@ class TestAPIRequest(unittest.TestCase):
     @property
     def _operador_mock(self):
         # todo Para fins de teste, é relevante que COD_OPERADOR seja de tipo compativel com a realidade das tabelas?
-        return {'COD_OPERADOR': self._random_string(3)}
+        return {'COD_OPERADOR': random.randint(10, 1000)}
 
     def mock_blob(self):
         """
@@ -45,13 +45,17 @@ class TestAPIRequest(unittest.TestCase):
     def setUp(self):
         self.api = UNIRIOAPIRequest(config.KEY, config.SERVER, cache=None, debug=False)
 
-    def _random_string(self, length):
+    @staticmethod
+    def random_string(length):
         return ''.join(random.choice(lowercase) for i in range(length))
 
     def _invalid_dummy_params(self):
-        params = {'INVALID_FIELD_%s' % self._random_string(3): random.randint(100, 10000)}
+        params = {'INVALID_FIELD_%s' % self.random_string(3): random.randint(100, 10000)}
         params.update(self._operador_mock)
         return params
+
+    def _convert_entry_keys_case(self, case, entry):
+        return {getattr(k, case)(): v for k, v in entry.items()}
 
 
 class TestAPIKey(TestAPIRequest):

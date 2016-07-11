@@ -1,5 +1,7 @@
 # coding=utf-8
 from datetime import timedelta, date
+
+from tests import config
 from unirio.api.exceptions import *
 from unirio.api.result import *
 from tests.request import TestAPIRequest
@@ -23,7 +25,7 @@ class TestProcedureSyncRequest(TestAPIRequest):
             'TIPO_INTERESSADO': 20,
             'TEMPO_ARQUIVAMENTO': 1,
             'COD_OPERADOR': 666,
-            'DESCR_MAIL': self._random_string(20),
+            'DESCR_MAIL': self.random_string(20),
             'DT_INICIAL': str(date.today()),
             'DT_REGISTRO': str(date.today()),
             'DT_FINAL': str(date.today() + timedelta(days=100)),
@@ -31,18 +33,18 @@ class TestProcedureSyncRequest(TestAPIRequest):
             'CARGA_HORARIA': 40,
             'ID_CONTRATO_RH': 8400145,
             'ID_USUARIO': 8400145,
-            'TITULO': self._random_string(40),
+            'TITULO': self.random_string(40),
             'ID_UNIDADE': 123,
             # 'TEM_APOIO_FINANCEIRO': 'N'
             'PROJETO_CONTEUDO_ARQUIVO': self.mock_blob(),
-            'PROJETO_NOME_ARQUIVO': self._random_string(20),
+            'PROJETO_NOME_ARQUIVO': self.random_string(20),
             'DEPARTAMENTO_CONTEUDO_ARQUIVO': self.mock_blob(),
-            'DEPARTAMENTO_NOME_ARQUIVO': self._random_string(20),
+            'DEPARTAMENTO_NOME_ARQUIVO': self.random_string(20),
         }
 
     def test_invalid_procedure(self):
         with self.assertRaises(InvalidEndpointException):
-            name = self._random_string(20)
+            name = self.random_string(20)
             self.api.call_procedure(name, {})
 
     def test_invalid_permission(self):
@@ -73,12 +75,24 @@ class TestProcedureSyncRequest(TestAPIRequest):
         self.assertEqual(set(result_fields), set(fields))
 
     def test_valid_procedure_with_invalid_fields(self):
-        fields = [self._random_string(6) for i in range(6)]
+        fields = [self.random_string(6) for i in range(6)]
         result = self.api.call_procedure(self.valid_procedure, (self.mock_dataset,), fields=fields)
         self.assertIsInstance(result, APIProcedureSyncResponse)
         self.assertEqual(len(result.content), 0)
 
     def test_valid_procedure_with_invalid_dataset(self):
         with self.assertRaises(MissingRequiredFieldsException):
-            data = {self._random_string(5): self._random_string(10) for i in range(6)}
+            data = {self.random_string(5): self.random_string(10) for i in range(6)}
             self.api.call_procedure(self.valid_procedure, (data,))
+
+    def test_case_insensibility(self):
+        results = []
+        mock = self.mock_dataset
+
+        for case in config.STR_CASES:
+            case_mock = self._convert_entry_keys_case(case, mock)
+            result = self.api.call_procedure(self.valid_procedure, (case_mock,))
+
+            results.append(result)
+
+        assert all(r == results[0] for r in results)

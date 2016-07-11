@@ -17,3 +17,6 @@ ENV = 'PRODUCTION_DEVELOPMENT'
 SERVER = APIServer[ENV].value
 
 KEY = Keys[ENV].value
+
+NOT_NULL_KEYS = ('PROJNO', 'PROJNAME', 'DEPTNO', 'RESPEMP', 'MAJPROJ', 'COD_OPERADOR')
+STR_CASES = ('lower', 'upper', 'title')

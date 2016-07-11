@@ -1,5 +1,8 @@
 # coding=utf-8
 import warnings
+
+from requests.structures import CaseInsensitiveDict
+
 from unirio.api.result import *
 from unirio.api.exceptions import *
 from collections import Iterable, Sized, Mapping
@@ -45,24 +48,24 @@ class TestGETRequest(TestAPIRequest):
 
     def test_orderby_invalid_field(self):
         with self.assertRaises(InvalidParametersException):
-            self.api.get(self.valid_endpoint, {'ORDERBY': self._random_string(10)})
+            self.api.get(self.valid_endpoint, {'ORDERBY': self.random_string(10)})
 
     def test_orderby_with_invalid_sort(self):
         with self.assertRaises(InvalidParametersException):
-            self.__test_orderby({'SORT': self._random_string(6)}, None)
+            self.__test_orderby({'SORT': self.random_string(6)}, None)
 
     def test_valid_endpoint_with_permission_and_invalid_parameters(self):
         with self.assertRaises(InvalidParametersException):
             self.api.get(
                 self.valid_endpoint,
-                {self._random_string(3): self._random_string(3) for i in range(0, 4)}
+                {self.random_string(3): self.random_string(3) for i in range(0, 4)}
             )
 
     def test_valid_endpoint_with_permission_and_invalid_empty_parameters_value(self):
         with self.assertRaises(NullParameterException):
             result = self.api.get(
                 self.valid_endpoint,
-                {self._random_string(3): '' for i in range(0, 4)}
+                {self.random_string(3): '' for i in range(0, 4)}
             )
             self.assertIsInstance(result, APIResultObject)
 
@@ -70,7 +73,7 @@ class TestGETRequest(TestAPIRequest):
         with self.assertRaises(NoContentException):
             self.api.get(
                 self.valid_endpoint,
-                {'PROJNAME_SET': tuple(self._random_string(i) for i in range(0, 10))}
+                {'PROJNAME_SET': tuple(self.random_string(i) for i in range(0, 10))}
             )
 
     def test_valid_endpoint_with_permission_and_valid_list_parameters_types(self):
@@ -136,3 +139,16 @@ class TestGETRequest(TestAPIRequest):
     def test_get_single_result_invalid_endpoint_bypassing_no_content_exception(self):
         with self.assertRaises(InvalidEndpointException):
             self.api.get_single_result(self.endpoints['invalid_endpoints'][0], bypass_no_content_exception=True)
+
+    def test_case_insensibility(self):
+        valid_entry = self.api.get_single_result(self.valid_endpoint)
+
+        assert isinstance(valid_entry, CaseInsensitiveDict)
+
+        def params_from_entry(str_func, entry):
+            return {getattr(k, str_func)(): v for k, v in entry.items() if v and (k != 'blobcol')}
+
+        upper_result = self.api.get_single_result(self.valid_endpoint, params_from_entry('upper', valid_entry))
+        lower_result = self.api.get_single_result(self.valid_endpoint, params_from_entry('lower', valid_entry))
+
+        assert valid_entry == upper_result == lower_result
